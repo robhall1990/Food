@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herbi 2.0 — Family Dinner Planner</title>
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --card: #ffffff;
+    --ink: #29352b;
+    --ink-soft: #5c6b5e;
+    --green: #3d7a4e;
+    --green-deep: #2c5e3a;
+    --green-soft: #e3efe6;
+    --amber: #e8a13c;
+    --amber-soft: #fbf0dc;
+    --coral: #e06b52;
+    --coral-soft: #fae5e0;
+    --line: #e4e0d5;
+    --shadow: 0 2px 10px rgba(41, 53, 43, .08);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c211d;
+      --card: #262d28;
+      --ink: #e8ede8;
+      --ink-soft: #a7b3a9;
+      --green: #6fb883;
+      --green-deep: #8fcda0;
+      --green-soft: #2e3d32;
+      --amber: #e8b364;
+      --amber-soft: #3d3524;
+      --coral: #e88a75;
+      --coral-soft: #40302b;
+      --line: #384038;
+      --shadow: 0 2px 10px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.5;
+    padding-bottom: 60px;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 18px 20px 0; position: sticky; top: 0; z-index: 20;
+  }
+  .header-row { display: flex; align-items: center; gap: 12px; max-width: 980px; margin: 0 auto; flex-wrap: wrap; }
+  .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+  .logo span { color: var(--green); }
+  .tagline { color: var(--ink-soft); font-size: .85rem; flex: 1; min-width: 180px; }
+  .family { display: flex; gap: 6px; align-items: center; }
+  .member {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--green-soft); color: var(--green-deep);
+    border-radius: 99px; padding: 4px 11px; font-size: .8rem; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer;
+  }
+  .member.off { opacity: .35; text-decoration: line-through; }
+  .tabs { display: flex; gap: 4px; max-width: 980px; margin: 14px auto 0; }
+  .tab {
+    border: none; background: none; font: inherit; font-weight: 600; color: var(--ink-soft);
+    padding: 10px 16px; cursor: pointer; border-bottom: 3px solid transparent; font-size: .95rem;
+  }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  main { max-width: 980px; margin: 22px auto; padding: 0 20px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ---- Week planner ---- */
+  .week-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .week-head h2 { font-size: 1.2rem; }
+  .week-head .spacer { flex: 1; }
+  .btn {
+    border: none; font: inherit; font-weight: 700; cursor: pointer;
+    border-radius: 10px; padding: 10px 16px; font-size: .9rem;
+    background: var(--green); color: #fff; box-shadow: var(--shadow);
+    transition: transform .08s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .btn.small { padding: 6px 10px; font-size: .8rem; border-radius: 8px; box-shadow: none; }
+  .stats { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 10px 16px; font-size: .82rem; color: var(--ink-soft);
+  }
+  .stat b { display: block; font-size: 1.15rem; color: var(--ink); }
+  .days { display: grid; gap: 12px; }
+  .day-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 16px;
+    display: grid; grid-template-columns: 88px 1fr auto; gap: 14px; align-items: center;
+  }
+  .day-card.locked { outline: 2px solid var(--amber); }
+  .day-label b { display: block; font-size: .95rem; }
+  .day-label small { color: var(--ink-soft); }
+  .meal-name { font-weight: 700; font-size: 1.02rem; cursor: pointer; }
+  .meal-name:hover { color: var(--green); }
+  .meal-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
+  .chip {
+    font-size: .72rem; font-weight: 600; border-radius: 99px; padding: 2px 9px;
+    background: var(--green-soft); color: var(--green-deep);
+  }
+  .chip.time { background: var(--amber-soft); color: #9a6a1d; }
+  @media (prefers-color-scheme: dark) { .chip.time { color: var(--amber); } }
+  .chip.kids { background: var(--coral-soft); color: var(--coral); }
+  .day-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    border: 1px solid var(--line); background: var(--card); border-radius: 9px;
+    width: 36px; height: 36px; cursor: pointer; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { background: var(--green-soft); }
+  .empty-week {
+    text-align: center; padding: 60px 20px; background: var(--card);
+    border: 2px dashed var(--line); border-radius: var(--radius);
+  }
+  .empty-week p { color: var(--ink-soft); margin: 8px 0 20px; }
+  .empty-week .big-emoji { font-size: 3rem; }
+
+  /* ---- Recipes ---- */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .search {
+    flex: 1; min-width: 200px; font: inherit; padding: 10px 14px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .filter-chip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    border-radius: 99px; padding: 7px 14px; font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+  }
+  .filter-chip.active { background: var(--green); border-color: var(--green); color: #fff; }
+  .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .recipe-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 16px; cursor: pointer; position: relative;
+    transition: transform .1s;
+  }
+  .recipe-card:hover { transform: translateY(-2px); }
+  .recipe-card .emoji { font-size: 1.9rem; }
+  .recipe-card h3 { font-size: .95rem; margin: 6px 0 6px; line-height: 1.3; }
+  .fav-mark { position: absolute; top: 12px; right: 12px; font-size: 1rem; }
+
+  /* ---- Shopping ---- */
+  .shop-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .shop-head .spacer { flex: 1; }
+  .shop-note { color: var(--ink-soft); font-size: .85rem; margin-bottom: 16px; }
+  .shop-group { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+  .shop-group h3 {
+    font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 16px; background: var(--green-soft); color: var(--green-deep);
+  }
+  .shop-item { display: flex; align-items: center; gap: 12px; padding: 9px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+  .shop-item:first-of-type { border-top: none; }
+  .shop-item input { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
+  .shop-item.done .item-name { text-decoration: line-through; opacity: .45; }
+  .item-qty { margin-left: auto; color: var(--ink-soft); font-size: .85rem; white-space: nowrap; }
+
+  /* ---- Modal ---- */
+  .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(20,25,20,.5);
+    z-index: 50; padding: 20px; overflow-y: auto;
+  }
+  .overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: var(--card); border-radius: 18px; max-width: 560px; width: 100%;
+    padding: 26px; margin: 30px 0; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  }
+  .modal .close { position: absolute; top: 14px; right: 14px; }
+  .modal h2 { font-size: 1.3rem; margin-bottom: 4px; padding-right: 40px; }
+  .modal .meal-meta { margin-bottom: 14px; }
+  .section-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-soft); margin: 18px 0 8px; font-weight: 700; }
+  .little-ones {
+    background: var(--amber-soft); border-radius: 12px; padding: 12px 14px; font-size: .88rem;
+  }
+  .ing-list { list-style: none; }
+  .ing-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: .9rem; }
+  .ing-list li span:last-child { color: var(--ink-soft); white-space: nowrap; }
+  .approval-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .approve-btn {
+    border: 1px solid var(--line); background: var(--bg); border-radius: 99px;
+    padding: 7px 14px; font: inherit; font-size: .85rem; cursor: pointer; font-weight: 600; color: var(--ink);
+  }
+  .approve-btn.yes { background: var(--green-soft); border-color: var(--green); color: var(--green-deep); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+  .modal-actions select {
+    font: inherit; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-weight: 600;
+  }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: var(--bg); padding: 11px 20px; border-radius: 99px;
+    font-size: .88rem; font-weight: 600; z-index: 99; transition: transform .25s; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    .day-card { grid-template-columns: 1fr; gap: 8px; }
+    .day-actions { justify-content: flex-end; }
+    .day-label { display: flex; gap: 8px; align-items: baseline; }
+  }
+  @media print {
+    header, .week-head, .shop-head, .tabs, .shop-note button { display: none !important; }
+    body { background: #fff; padding: 0; }
+    .panel { display: none; }
+    #panel-shop { display: block !important; }
+    .shop-group { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="logo">🌿 Herbi <span>2.0</span></div>
+    <div class="tagline">Plant-powered dinners for two grown-ups &amp; two small humans</div>
+    <div class="family" id="familyChips" title="Tap a name to include/exclude them from portions"></div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="week">📅 This Week</button>
+    <button class="tab" data-tab="recipes">🍲 Recipes</button>
+    <button class="tab" data-tab="shop">🛒 Shopping List</button>
+  </nav>
+</header>
+
+<main>
+  <!-- WEEK -->
+  <section class="panel active" id="panel-week">
+    <div class="week-head">
+      <h2 id="weekLabel"></h2>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="clearWeekBtn">Clear</button>
+      <button class="btn" id="planBtn">✨ Plan my week</button>
+    </div>
+    <div class="stats" id="weekStats"></div>
+    <div class="days" id="dayList"></div>
+  </section>
+
+  <!-- RECIPES -->
+  <section class="panel" id="panel-recipes">
+    <div class="filters">
+      <input class="search" id="searchBox" type="search" placeholder="Search dinners…">
+      <button class="filter-chip" data-filter="quick">⚡ 25 min or less</button>
+      <button class="filter-chip" data-filter="kidfave">💚 Kid-approved</button>
+      <button class="filter-chip" data-filter="batch">🍲 Batch &amp; freeze</button>
+      <button class="filter-chip" data-filter="fun">🎉 Fun night</button>
+    </div>
+    <div class="recipe-grid" id="recipeGrid"></div>
+  </section>
+
+  <!-- SHOPPING -->
+  <section class="panel" id="panel-shop">
+    <div class="shop-head">
+      <h2>Shopping list</h2>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="printBtn">🖨 Print</button>
+      <button class="btn" id="copyBtn">📋 Copy list</button>
+    </div>
+    <p class="shop-note" id="shopNote"></p>
+    <div id="shopGroups"></div>
+  </section>
+</main>
+
+<!-- RECIPE MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   Recipe library — quantities are for 4 adult portions and
+   get scaled to whoever's eating (see FAMILY below).
+   kid: 1–3 = how reliably little ones eat it.
+   note: serving tips for a 4-year-old & a 2-year-old.
+   ========================================================= */
+const CATS = ["Fruit & Veg", "Fridge", "Pantry", "Bakery", "Frozen", "Herbs & Spices"];
+const R = (id, name, emoji, cuisine, mins, tags, kid, note, ing) =>
+  ({ id, name, emoji, cuisine, mins, tags, kid, note, ing });
+
+const RECIPES = [
+  R("bolognese", "Hidden-Veg Lentil Bolognese", "🍝", "Italian", 30, ["quick","batch","freezer"], 3,
+    "Blitz the sauce smooth for the 2-year-old — carrots and lentils vanish completely. Serve the 4-year-old's pasta with sauce on the side if she's in a 'nothing touching' phase. Cut spaghetti short for little mouths.",
+    [["spaghetti",350,"g","Pantry"],["red lentils (dried)",150,"g","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["carrots",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["dried oregano",1,"tsp","Herbs & Spices"],["parmesan-style cheese",40,"g","Fridge"]]),
+
+  R("quesadillas", "Sweet Potato & Black Bean Quesadillas", "🌯", "Mexican", 20, ["quick","fun"], 3,
+    "Cut into small triangles — perfect toddler hand food. Skip any chilli in the kids' half. Cool the 2-year-old's pieces before serving; melted cheese stays hot inside.",
+    [["flour tortillas",8,"","Bakery"],["sweet potatoes",2,"","Fruit & Veg"],["black beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["avocado",1,"","Fruit & Veg"],["lime",1,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]]),
+
+  R("korma", "Creamy Coconut Chickpea Korma", "🍛", "Indian", 30, ["batch","freezer"], 3,
+    "Naturally mild and sweet — a great first curry. Lightly mash the chickpeas on the 2-year-old's plate (whole ones can be slippery). Naan strips are great for dipping practice.",
+    [["chickpeas",2,"tins","Pantry"],["coconut milk",1,"tin","Pantry"],["korma paste (mild)",3,"tbsp","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["spinach",100,"g","Fruit & Veg"],["naan breads",2,"","Bakery"],["ground almonds",2,"tbsp","Pantry"]]),
+
+  R("friedrice", "Rainbow Veggie Fried Rice", "🍚", "Chinese", 20, ["quick"], 3,
+    "Use low-salt soy sauce and go easy for the under-5s. Scramble the egg into small soft pieces. Peas and sweetcorn are usually the first things eaten — load them up.",
+    [["rice",300,"g","Pantry"],["eggs",3,"","Fridge"],["frozen peas",150,"g","Frozen"],["sweetcorn",1,"small tin","Pantry"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["sesame oil",1,"tbsp","Pantry"]]),
+
+  R("pitapizza", "Margherita Pita Pizzas", "🍕", "Italian", 15, ["quick","fun"], 3,
+    "Let the 4-year-old spread her own sauce and sprinkle cheese — ownership = eating. Cut the 2-year-old's into fingers and check the tomato isn't lava-hot underneath.",
+    [["pita breads",6,"","Bakery"],["passata",200,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olive oil",1,"tbsp","Pantry"]]),
+
+  R("maccheese", "Butternut Mac & Cheese", "🧀", "American", 35, ["batch","freezer"], 3,
+    "The squash makes the sauce sweet and silky — usually a clean-plate meal. Use small macaroni for the 2-year-old. Stir in peas for a one-bowl dinner.",
+    [["macaroni",350,"g","Pantry"],["butternut squash",0.5,"","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",300,"ml","Fridge"],["butter",30,"g","Fridge"],["plain flour",2,"tbsp","Pantry"],["frozen peas",150,"g","Frozen"],["dijon mustard",1,"tsp","Pantry"]]),
+
+  R("tacos", "Build-Your-Own Bean Tacos", "🌮", "Mexican", 25, ["quick","fun"], 3,
+    "Deconstruct completely for the kids: little piles of beans, cheese, tomato and soft tortilla strips. Halve or quarter cherry tomatoes for the 2-year-old — whole ones are a choking risk.",
+    [["taco shells or mini tortillas",8,"","Bakery"],["refried beans",1,"tin","Pantry"],["grated cheddar",120,"g","Fridge"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["avocado",1,"","Fruit & Veg"],["mild taco seasoning",1,"tbsp","Herbs & Spices"]]),
+
+  R("teriyaki", "Sticky Teriyaki Tofu Rice Bowls", "🍱", "Japanese", 25, ["quick"], 2,
+    "The sticky-sweet glaze wins most kids over. Cut tofu into small cubes for the 2-year-old, and steam the broccoli soft rather than crunchy for both kids.",
+    [["firm tofu",400,"g","Fridge"],["rice",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["honey or maple syrup",2,"tbsp","Pantry"],["garlic cloves",2,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["sesame seeds",1,"tbsp","Pantry"]]),
+
+  R("minestrone", "Minestrone with Tiny Pasta", "🥣", "Italian", 35, ["batch","freezer"], 2,
+    "Use the smallest pasta you can find (orzo/stelline) — easy on a toddler spoon. Serve the 2-year-old's portion thick, more stew than soup, with bread for dipping.",
+    [["orzo or tiny pasta",200,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["cannellini beans",1,"tin","Pantry"],["carrots",2,"","Fruit & Veg"],["courgette",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["crusty bread",1,"loaf","Bakery"]]),
+
+  R("nuggets", "Chickpea Nuggets & Sweet Potato Fries", "🍟", "American", 35, ["fun","freezer"], 3,
+    "Homemade nuggets, zero mystery. Make a few mini ones for the 2-year-old. Serve with peas or cucumber sticks and a yogurt dip — dips double vegetable intake.",
+    [["chickpeas",2,"tins","Pantry"],["breadcrumbs",100,"g","Pantry"],["sweet potatoes",3,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["frozen peas",200,"g","Frozen"],["natural yogurt",150,"ml","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]]),
+
+  R("peanutnoodles", "Mild Peanut Butter Noodles", "🍜", "Thai", 20, ["quick"], 2,
+    "Smooth peanut butter only (never whole nuts under 5). Rinse the kids' noodles in cool water so they can dig in straight away. Skip lime and chilli on their portions.",
+    [["egg noodles",300,"g","Pantry"],["smooth peanut butter",4,"tbsp","Pantry"],["coconut milk",0.5,"tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["sugar snap peas",150,"g","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]]),
+
+  R("shepherdless", "Lentil Shepherd-less Pie", "🥧", "British", 50, ["weekend","batch","freezer"], 2,
+    "Cosy weekend food. Mash is toddler heaven; if the lentil layer gets rejected, mix a spoonful through the mash rather than serving it separately.",
+    [["green or brown lentils",2,"tins","Pantry"],["potatoes",1,"kg","Fruit & Veg"],["carrots",3,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"],["milk",50,"ml","Fridge"],["butter",40,"g","Fridge"],["dried thyme",1,"tsp","Herbs & Spices"]]),
+
+  R("traybake", "Veggie Sausage & Roast Veg Traybake", "🥘", "British", 40, [], 3,
+    "One tray, no washing up mountain. Cut sausages lengthways then into half-moons for the 2-year-old (round slices are a choking shape). Roasted sweet potato is usually the favourite.",
+    [["veggie sausages",8,"","Frozen"],["sweet potatoes",2,"","Fruit & Veg"],["red pepper",2,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["baby potatoes",500,"g","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried rosemary",1,"tsp","Herbs & Spices"]]),
+
+  R("falafel", "Falafel Pockets with Yogurt Dip", "🥙", "Middle Eastern", 30, [], 2,
+    "Crumble falafel into the 2-year-old's pita rather than serving whole balls. The yogurt dip is the gateway — most kids will eat anything they can dunk.",
+    [["falafel",12,"","Fridge"],["pita breads",6,"","Bakery"],["natural yogurt",200,"ml","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",150,"g","Fruit & Veg"],["hummus",200,"g","Fridge"],["little gem lettuce",1,"","Fruit & Veg"],["lemon",1,"","Fruit & Veg"]]),
+
+  R("risotto", "Creamy Tomato & Pea Risotto", "🍅", "Italian", 40, [], 3,
+    "Soft, scoopable, mild — brilliant toddler texture. Let it cool to warm for the 2-year-old; risotto holds heat. The 4-year-old can help stir (supervised) and will be prouder of dinner for it.",
+    [["risotto rice",320,"g","Pantry"],["passata",300,"ml","Pantry"],["frozen peas",200,"g","Frozen"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["parmesan-style cheese",50,"g","Fridge"],["butter",30,"g","Fridge"]]),
+
+  R("dhal", "Golden Coconut Dhal & Fluffy Rice", "🥥", "Indian", 35, ["batch","freezer"], 2,
+    "Mild, creamy and cheap as chips. Serve the kids' dhal thick like a purée with rice stirred through. Freeze leftovers flat in bags for instant future dinners.",
+    [["red lentils (dried)",300,"g","Pantry"],["coconut milk",1,"tin","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["ground turmeric",1,"tsp","Herbs & Spices"],["mild curry powder",2,"tsp","Herbs & Spices"],["naan breads",2,"","Bakery"]]),
+
+  R("gnocchi", "Gnocchi with Peas & Gentle Pesto", "🟢", "Italian", 15, ["quick"], 3,
+    "Fifteen minutes, one pan of boiling water. Quarter the gnocchi for the 2-year-old — they're exactly the wrong size whole. Loosen pesto with a little pasta water so it's not too intense.",
+    [["gnocchi",800,"g","Fridge"],["green pesto",1,"jar","Pantry"],["frozen peas",200,"g","Frozen"],["crème fraîche",100,"ml","Fridge"],["parmesan-style cheese",40,"g","Fridge"],["baby spinach",80,"g","Fruit & Veg"]]),
+
+  R("burritobowl", "Build-Your-Own Burrito Bowls", "🥗", "Mexican", 25, ["quick","fun"], 3,
+    "Everyone assembles their own — the 4-year-old gets full control, which kills most protests. Mash avocado and beans together for the 2-year-old with rice: instant baby burrito bowl.",
+    [["rice",300,"g","Pantry"],["black beans",2,"tins","Pantry"],["sweetcorn",1,"tin","Pantry"],["avocado",2,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["grated cheddar",120,"g","Fridge"],["soured cream",150,"ml","Fridge"],["lime",2,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]]),
+
+  R("burgers", "Veggie Burgers & Corn on the Cob", "🍔", "American", 30, ["fun"], 3,
+    "Serve the 2-year-old's burger as pieces with the bun on the side — whole burgers are too big a bite. Cut corn kernels off the cob for him; the 4-year-old will want the whole cob like a grown-up.",
+    [["veggie burgers",4,"","Frozen"],["burger buns",4,"","Bakery"],["corn on the cob",4,"","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["tomatoes",2,"","Fruit & Veg"],["cheese slices",4,"","Fridge"],["potato wedges",600,"g","Frozen"]]),
+
+  R("misonoodle", "Gentle Miso Noodle Soup", "🍥", "Japanese", 25, ["quick"], 2,
+    "Serve the kids' bowls barely warm with noodles snipped short (scissors are the ultimate toddler-dinner tool). Keep their broth light on miso — it's salty.",
+    [["udon or egg noodles",300,"g","Pantry"],["white miso paste",3,"tbsp","Pantry"],["firm tofu",300,"g","Fridge"],["baby corn",100,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",3,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"]]),
+
+  R("jackets", "Loaded Jacket Potatoes", "🥔", "British", 60, ["weekend"], 3,
+    "Almost zero effort — the oven does everything. Scoop the 2-year-old's potato out of the skin and mash with beans and cheese. Classic for a reason.",
+    [["baking potatoes",4,"","Fruit & Veg"],["baked beans",2,"tins","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",40,"g","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"]]),
+
+  R("pastashells", "Spinach & Ricotta Pasta Bake", "🐚", "Italian", 45, ["weekend","batch"], 2,
+    "A soft, mild bake that hides a lot of spinach. Chop it very finely so there are no 'green bits' to pick out. Portion the kids' servings early so they cool in time.",
+    [["large pasta shells or penne",350,"g","Pantry"],["ricotta",250,"g","Fridge"],["spinach",200,"g","Fruit & Veg"],["passata",500,"ml","Pantry"],["mozzarella",1,"ball","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["nutmeg",1,"pinch","Herbs & Spices"]]),
+
+  R("katsu", "Crispy Tofu Katsu Curry", "🍛", "Japanese", 40, ["weekend"], 2,
+    "Crispy coating + sweet mild sauce = surprisingly kid-friendly. Serve sauce on the side for the 4-year-old to dip. Cut the katsu into little fingers for the 2-year-old.",
+    [["firm tofu",400,"g","Fridge"],["panko breadcrumbs",120,"g","Pantry"],["katsu or mild curry sauce",1,"jar","Pantry"],["rice",300,"g","Pantry"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["eggs",2,"","Fridge"]]),
+
+  R("fritters", "Pea & Sweetcorn Fritters", "🥞", "British", 25, ["quick"], 2,
+    "Fritters are the great smuggler of vegetables. Make them small and flat so they cook soft in the middle. Serve with yogurt for dipping and fruit on the side.",
+    [["frozen peas",200,"g","Frozen"],["sweetcorn",1,"tin","Pantry"],["self-raising flour",150,"g","Pantry"],["eggs",2,"","Fridge"],["milk",100,"ml","Fridge"],["spring onions",3,"","Fruit & Veg"],["natural yogurt",150,"ml","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"]]),
+
+  R("fajitas", "Halloumi Fajita Night", "🫓", "Mexican", 25, ["quick","fun"], 3,
+    "Halloumi is salty, so keep the kids' portions modest and add extra soft peppers. Serve theirs as a 'plate of bits' with tortilla strips rather than a rolled wrap.",
+    [["halloumi",2,"blocks","Fridge"],["flour tortillas",8,"","Bakery"],["red pepper",2,"","Fruit & Veg"],["yellow pepper",1,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["lime",1,"","Fruit & Veg"]]),
+
+  R("squashpasta", "Butternut & Sage Pasta", "🎃", "Italian", 35, [], 2,
+    "Sweet roasted squash blitzed into a golden sauce — looks like mac & cheese, sneaks in a whole vegetable. Use fun pasta shapes; shape novelty genuinely helps at 4.",
+    [["pasta shapes",350,"g","Pantry"],["butternut squash",1,"","Fruit & Veg"],["crème fraîche",150,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["parmesan-style cheese",50,"g","Fridge"],["dried sage",1,"tsp","Herbs & Spices"],["olive oil",2,"tbsp","Pantry"]]),
+
+  R("pizzanight", "Make-Your-Own Pizza Night", "🍕", "Italian", 45, ["weekend","fun"], 3,
+    "The Friday classic. Ready-made dough keeps it easy; kids top their own. Pre-portion toppings in little bowls or the 2-year-old will eat all the cheese before assembly.",
+    [["pizza dough or bases",2,"","Bakery"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mushrooms",100,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olives",50,"g","Pantry"]]),
+
+  R("chowder", "Sweetcorn Chowder & Crusty Bread", "🌽", "American", 35, ["batch"], 3,
+    "Sweet, creamy and gentle. Blitz half the soup so it's thick enough for self-feeding with a spoon. Bread for dunking is non-negotiable.",
+    [["sweetcorn",2,"tins","Pantry"],["potatoes",500,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["milk",400,"ml","Fridge"],["low-salt veg stock cube",1,"","Pantry"],["spring onions",3,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",80,"g","Fridge"]]),
+
+  R("paella", "Veggie Paella-Style Rice", "🥘", "Spanish", 40, ["weekend"], 2,
+    "One big pan on the table, everyone digs in — good for modelling adventurous eating. Peas and beans are the toddler entry point; don't stress if the peppers come back.",
+    [["paella or risotto rice",320,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["green beans",150,"g","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["smoked paprika",1,"tsp","Herbs & Spices"],["lemon",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"]]),
+
+  R("eggcurry", "Coconut Egg & Spinach Curry", "🥚", "Indian", 30, ["quick"], 2,
+    "Boiled eggs in a mild coconut sauce — protein-packed and gentle. Quarter the eggs for both kids. If the sauce is a no, eggs + rice + peas still makes a solid dinner.",
+    [["eggs",8,"","Fridge"],["coconut milk",1,"tin","Pantry"],["spinach",150,"g","Fruit & Veg"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["mild curry powder",2,"tsp","Herbs & Spices"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"]]),
+];
+
+/* ============ Family & portions ============ */
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DEFAULT_FAMILY = [
+  { key: "dad",      name: "Dad",          emoji: "🧔", factor: 1.0, on: true },
+  { key: "mum",      name: "Mum",          emoji: "👩", factor: 1.0, on: true },
+  { key: "daughter", name: "Daughter · 4", emoji: "👧", factor: 0.5, on: true },
+  { key: "son",      name: "Son · 2",      emoji: "👦", factor: 0.3, on: true },
+];
+
+/* ============ State ============ */
+const STORE_KEY = "herbi2";
+let state = load();
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (raw && Array.isArray(raw.week)) {
+      raw.family = (raw.family && raw.family.length === 4) ? raw.family : DEFAULT_FAMILY.map(m => ({...m}));
+      raw.checked = raw.checked || {};
+      raw.approvals = raw.approvals || {};
+      raw.favorites = raw.favorites || [];
+      raw.history = raw.history || [];
+      return raw;
+    }
+  } catch (e) { /* corrupted storage — start fresh */ }
+  return {
+    week: Array(7).fill(null),       // recipe ids or null
+    locked: Array(7).fill(false),
+    favorites: [],                    // recipe ids
+    approvals: {},                    // id -> {daughter:bool, son:bool}
+    checked: {},                      // shopping item key -> bool
+    history: [],                      // last plan's ids (variety between weeks)
+    family: DEFAULT_FAMILY.map(m => ({...m})),
+  };
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+const byId = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+const familyFactor = () => state.family.reduce((s, m) => s + (m.on ? m.factor : 0), 0);
+
+/* ============ Week planning ============ */
+function candidatesFor(dayIdx, usedIds, prevCuisine) {
+  return RECIPES.filter(r => {
+    if (usedIds.has(r.id)) return false;
+    if (dayIdx <= 3 && r.mins > 35) return false;          // school-night speed limit
+    if (r.cuisine === prevCuisine) return false;            // vary cuisines day to day
+    return true;
+  });
+}
+function scoreRecipe(r, dayIdx) {
+  let s = Math.random() * 2;
+  if (state.favorites.includes(r.id)) s += 2;
+  const ap = state.approvals[r.id] || {};
+  s += (ap.daughter ? 1 : 0) + (ap.son ? 1 : 0);
+  if (dayIdx <= 3) s += r.kid;                              // tired weeknights → safe bets
+  if (dayIdx === 4 && r.tags.includes("fun")) s += 3;       // Friday fun night
+  if (dayIdx >= 5 && (r.tags.includes("weekend") || r.tags.includes("batch"))) s += 2;
+  if (state.history.includes(r.id)) s -= 2.5;               // didn't we just have this?
+  return s;
+}
+function planWeek() {
+  const used = new Set(state.week.filter((id, i) => id && state.locked[i]));
+  const newWeek = state.week.slice();
+  for (let i = 0; i < 7; i++) {
+    if (state.locked[i] && newWeek[i]) { used.add(newWeek[i]); continue; }
+    const prev = i > 0 && newWeek[i-1] ? byId[newWeek[i-1]].cuisine : null;
+    let pool = candidatesFor(i, used, prev);
+    if (!pool.length) pool = RECIPES.filter(r => !used.has(r.id));
+    pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
+    newWeek[i] = pool[0].id;
+    used.add(newWeek[i]);
+  }
+  state.history = state.week.filter(Boolean);
+  state.week = newWeek;
+  state.checked = {};
+  save(); renderAll();
+  toast("New week planned! 🌱");
+}
+function swapDay(i) {
+  const used = new Set(state.week.filter((id, j) => id && j !== i));
+  const prev = i > 0 && state.week[i-1] ? byId[state.week[i-1]].cuisine : null;
+  let pool = candidatesFor(i, used, prev).filter(r => r.id !== state.week[i]);
+  if (!pool.length) pool = RECIPES.filter(r => !used.has(r.id) && r.id !== state.week[i]);
+  if (!pool.length) return;
+  pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
+  state.week[i] = pool[Math.floor(Math.random() * Math.min(4, pool.length))].id;
+  state.checked = {};
+  save(); renderAll();
+}
+
+/* ============ Shopping list ============ */
+function shoppingList() {
+  const scale = familyFactor() / 4;
+  const map = new Map();
+  state.week.forEach(id => {
+    if (!id) return;
+    byId[id].ing.forEach(([item, qty, unit, cat]) => {
+      const key = item + "|" + unit;
+      const cur = map.get(key) || { item, unit, cat, qty: 0 };
+      cur.qty += qty * scale;
+      map.set(key, cur);
+    });
+  });
+  const groups = {};
+  for (const e of map.values()) {
+    e.display = niceQty(e.qty, e.unit);
+    (groups[e.cat] = groups[e.cat] || []).push(e);
+  }
+  for (const c in groups) groups[c].sort((a, b) => a.item.localeCompare(b.item));
+  return groups;
+}
+function niceQty(q, unit) {
+  const u = unit.toLowerCase();
+  if (u.includes("tin") || u.includes("jar") || u.includes("block") || u.includes("ball") ||
+      u.includes("loaf") || u.includes("cube") || u.includes("bunch") || u.includes("thumb") ||
+      u.includes("head") || u.includes("pinch") || u === "") {
+    const n = Math.max(1, Math.ceil(q - 0.05));
+    return unit ? `${n} ${unit}${n > 1 && !unit.endsWith("s") && !u.includes("pinch") ? "s" : ""}` : `${n}`;
+  }
+  if (u === "g" || u === "ml") return `${Math.ceil(q / 25) * 25} ${unit}`;
+  if (u === "kg") return `${Math.ceil(q * 4) / 4} kg`;
+  if (u === "tbsp" || u === "tsp") return `${Math.max(0.5, Math.round(q * 2) / 2)} ${unit}`;
+  return `${Math.round(q * 2) / 2} ${unit}`;
+}
+function listAsText() {
+  const groups = shoppingList();
+  let out = "🌿 Herbi shopping list\n";
+  CATS.forEach(cat => {
+    if (!groups[cat]) return;
+    out += `\n${cat.toUpperCase()}\n`;
+    groups[cat].forEach(e => { out += `  □ ${e.item} — ${e.display}\n`; });
+  });
+  return out;
+}
+
+/* ============ Rendering ============ */
+const $ = s => document.querySelector(s);
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+function renderFamily() {
+  $("#familyChips").innerHTML = state.family.map((m, i) =>
+    `<button class="member ${m.on ? "" : "off"}" data-member="${i}">${m.emoji} ${esc(m.name)}</button>`
+  ).join("");
+}
+
+function mondayOfThisWeek() {
+  const d = new Date();
+  const shift = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - shift);
+  return d;
+}
+function renderWeek() {
+  const mon = mondayOfThisWeek();
+  const fmt = { day: "numeric", month: "short" };
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  $("#weekLabel").textContent = `Week of ${mon.toLocaleDateString(undefined, fmt)} – ${sun.toLocaleDateString(undefined, fmt)}`;
+
+  const planned = state.week.filter(Boolean);
+  if (!planned.length) {
+    $("#weekStats").innerHTML = "";
+    $("#dayList").innerHTML = `
+      <div class="empty-week">
+        <div class="big-emoji">🥕</div>
+        <h3>No dinners planned yet</h3>
+        <p>Hit the button and Herbi will pick seven kid-tested dinners —<br>quick ones on school nights, something fun on Friday.</p>
+        <button class="btn" onclick="planWeek()">✨ Plan my week</button>
+      </div>`;
+    return;
+  }
+  const avg = Math.round(planned.reduce((s, id) => s + byId[id].mins, 0) / planned.length);
+  const approved = planned.filter(id => { const a = state.approvals[id] || {}; return a.daughter || a.son; }).length;
+  const quick = planned.filter(id => byId[id].mins <= 25).length;
+  $("#weekStats").innerHTML = `
+    <div class="stat"><b>${avg} min</b>average cook time</div>
+    <div class="stat"><b>${approved}/7</b>already kid-approved</div>
+    <div class="stat"><b>${quick}</b>super-quick nights (≤25 min)</div>
+    <div class="stat"><b>${familyFactor().toFixed(1)}×</b>portion scale for your crew</div>`;
+
+  $("#dayList").innerHTML = state.week.map((id, i) => {
+    const date = new Date(mon); date.setDate(mon.getDate() + i);
+    const r = id ? byId[id] : null;
+    return `
+    <div class="day-card ${state.locked[i] ? "locked" : ""}">
+      <div class="day-label"><b>${DAYS[i]}</b><small>${date.toLocaleDateString(undefined, fmt)}</small></div>
+      <div>
+        ${r ? `
+        <div class="meal-name" onclick="openRecipe('${r.id}')">${r.emoji} ${esc(r.name)}</div>
+        <div class="meal-meta">
+          <span class="chip time">⏱ ${r.mins} min</span>
+          <span class="chip">${esc(r.cuisine)}</span>
+          <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
+          ${kidBadges(r.id)}
+        </div>` : `<div class="meal-name" style="color:var(--ink-soft)">Nothing planned</div>`}
+      </div>
+      <div class="day-actions">
+        <button class="icon-btn" title="Swap for something else" onclick="swapDay(${i})">🔄</button>
+        <button class="icon-btn" title="${state.locked[i] ? "Unlock" : "Lock this meal in"}" onclick="toggleLock(${i})">${state.locked[i] ? "🔒" : "🔓"}</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function kidBadges(id) {
+  const a = state.approvals[id] || {};
+  let out = "";
+  if (a.daughter) out += `<span title="Daughter approves">👧✓</span>`;
+  if (a.son) out += `<span title="Son approves">👦✓</span>`;
+  return out;
+}
+function toggleLock(i) { state.locked[i] = !state.locked[i]; save(); renderWeek(); }
+
+let activeFilters = new Set();
+function renderRecipes() {
+  const q = $("#searchBox").value.trim().toLowerCase();
+  const list = RECIPES.filter(r => {
+    if (q && !(r.name + " " + r.cuisine).toLowerCase().includes(q)) return false;
+    if (activeFilters.has("quick") && r.mins > 25) return false;
+    if (activeFilters.has("fun") && !r.tags.includes("fun")) return false;
+    if (activeFilters.has("batch") && !(r.tags.includes("batch") || r.tags.includes("freezer"))) return false;
+    if (activeFilters.has("kidfave")) {
+      const a = state.approvals[r.id] || {};
+      if (!a.daughter && !a.son && r.kid < 3) return false;
+    }
+    return true;
+  });
+  $("#recipeGrid").innerHTML = list.map(r => `
+    <div class="recipe-card" onclick="openRecipe('${r.id}')">
+      ${state.favorites.includes(r.id) ? `<div class="fav-mark">❤️</div>` : ""}
+      <div class="emoji">${r.emoji}</div>
+      <h3>${esc(r.name)}</h3>
+      <div class="meal-meta">
+        <span class="chip time">⏱ ${r.mins}m</span>
+        <span class="chip">${esc(r.cuisine)}</span>
+        <span class="chip kids">${"💚".repeat(r.kid)}</span>
+        ${kidBadges(r.id)}
+      </div>
+    </div>`).join("") || `<p style="color:var(--ink-soft)">No dinners match — try clearing a filter.</p>`;
+}
+
+function renderShop() {
+  const groups = shoppingList();
+  const any = Object.keys(groups).length;
+  $("#shopNote").innerHTML = any
+    ? `Everything for this week's seven dinners, scaled to <b>${familyFactor().toFixed(1)} adult portions</b> (2 grown-ups + a 4-year-old + a 2-year-old). Tap items as you shop.`
+    : "Plan your week first and the shopping list builds itself.";
+  $("#shopGroups").innerHTML = CATS.filter(c => groups[c]).map(cat => `
+    <div class="shop-group">
+      <h3>${cat}</h3>
+      ${groups[cat].map(e => {
+        const key = e.item + "|" + e.unit;
+        const done = state.checked[key];
+        return `<label class="shop-item ${done ? "done" : ""}">
+          <input type="checkbox" ${done ? "checked" : ""} onchange="toggleCheck('${esc(key).replace(/'/g, "\\'")}')">
+          <span class="item-name">${esc(e.item)}</span>
+          <span class="item-qty">${esc(e.display)}</span>
+        </label>`;
+      }).join("")}
+    </div>`).join("");
+}
+function toggleCheck(key) { state.checked[key] = !state.checked[key]; save(); renderShop(); }
+
+/* ============ Recipe modal ============ */
+function openRecipe(id) {
+  const r = byId[id];
+  const a = state.approvals[id] || {};
+  const scale = familyFactor() / 4;
+  const fav = state.favorites.includes(id);
+  $("#modal").innerHTML = `
+    <button class="icon-btn close" onclick="closeModal()">✕</button>
+    <h2>${r.emoji} ${esc(r.name)}</h2>
+    <div class="meal-meta">
+      <span class="chip time">⏱ ${r.mins} min</span>
+      <span class="chip">${esc(r.cuisine)}</span>
+      <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
+      ${r.tags.map(t => `<span class="chip">${t}</span>`).join("")}
+    </div>
+    <div class="section-label">👶 For the little ones</div>
+    <div class="little-ones">${esc(r.note)}</div>
+    <div class="section-label">🛒 Ingredients · scaled to your family (${familyFactor().toFixed(1)} portions)</div>
+    <ul class="ing-list">
+      ${r.ing.map(([item, qty, unit]) => `<li><span>${esc(item)}</span><span>${esc(niceQty(qty * scale, unit))}</span></li>`).join("")}
+    </ul>
+    <div class="section-label">Did the kids eat it?</div>
+    <div class="approval-row">
+      <button class="approve-btn ${a.daughter ? "yes" : ""}" onclick="toggleApproval('${id}','daughter')">👧 Daughter ${a.daughter ? "✓ loved it" : "— tap if she ate it"}</button>
+      <button class="approve-btn ${a.son ? "yes" : ""}" onclick="toggleApproval('${id}','son')">👦 Son ${a.son ? "✓ loved it" : "— tap if he ate it"}</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="toggleFav('${id}')">${fav ? "❤️ Favourited" : "🤍 Favourite"}</button>
+      <select id="addDaySel">
+        <option value="">Add to a day…</option>
+        ${DAYS.map((d, i) => `<option value="${i}">${d}</option>`).join("")}
+      </select>
+      <button class="btn" onclick="addToDay('${id}')">Add</button>
+    </div>`;
+  $("#overlay").classList.add("open");
+}
+function closeModal() { $("#overlay").classList.remove("open"); }
+function toggleApproval(id, kid) {
+  const a = state.approvals[id] = state.approvals[id] || {};
+  a[kid] = !a[kid];
+  save(); openRecipe(id); renderWeek(); renderRecipes();
+}
+function toggleFav(id) {
+  const i = state.favorites.indexOf(id);
+  if (i >= 0) state.favorites.splice(i, 1); else state.favorites.push(id);
+  save(); openRecipe(id); renderRecipes();
+}
+function addToDay(id) {
+  const v = $("#addDaySel").value;
+  if (v === "") { toast("Pick a day first"); return; }
+  state.week[+v] = id;
+  state.checked = {};
+  save(); renderAll(); closeModal();
+  toast(`${byId[id].emoji} Added to ${DAYS[+v]}`);
+  switchTab("week");
+}
+
+/* ============ Chrome ============ */
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
+}
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+function renderAll() { renderFamily(); renderWeek(); renderRecipes(); renderShop(); }
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+document.querySelectorAll(".filter-chip").forEach(c => c.addEventListener("click", () => {
+  const f = c.dataset.filter;
+  if (activeFilters.has(f)) activeFilters.delete(f); else activeFilters.add(f);
+  c.classList.toggle("active");
+  renderRecipes();
+}));
+$("#searchBox").addEventListener("input", renderRecipes);
+$("#planBtn").addEventListener("click", planWeek);
+$("#clearWeekBtn").addEventListener("click", () => {
+  state.week = Array(7).fill(null);
+  state.locked = Array(7).fill(false);
+  state.checked = {};
+  save(); renderAll();
+});
+$("#copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(listAsText())
+    .then(() => toast("List copied — paste it anywhere 📋"))
+    .catch(() => toast("Couldn't copy — try the print button"));
+});
+$("#printBtn").addEventListener("click", () => window.print());
+$("#familyChips").addEventListener("click", e => {
+  const btn = e.target.closest("[data-member]");
+  if (!btn) return;
+  const m = state.family[+btn.dataset.member];
+  m.on = !m.on;
+  save(); renderAll();
+  toast(m.on ? `${m.name} is back at the table` : `${m.name} skipped — portions adjusted`);
+});
+$("#overlay").addEventListener("click", e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+renderAll();
+</script>
+</body>
+</html>
