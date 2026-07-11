@@ -39,8 +39,23 @@ recipes, grouped by supermarket section, and **scaled to your family**
 copy the list as text, or print it. Tap a family member's name in the header
 to exclude them (date night, kid at grandma's) and portions rescale.
 
-**🍲 30 vegetarian dinners** — searchable and filterable (quick / kid-approved /
-batch-and-freeze / fun night), each with kid-friendliness ratings.
+**🍲 50 vegetarian dinners built in** — searchable and filterable (quick /
+kid-approved / batch-and-freeze / fun night / my recipes), each with
+kid-friendliness ratings.
+
+**✏️ Your own recipes** — add family favourites with the built-in editor
+(name, cook time, kid rating, tags, little-ones notes, and ingredients with
+aisle categories). Custom recipes join the planner rotation and the shopping
+list automatically, and can be edited or deleted any time.
+
+**🥡 Real-life nights** — mark any day as "Leftovers" or "Eating out /
+takeaway" via the ✏️ button so the plan (and shopping list) match reality.
+
+**➕ Shopping extras** — add anything else you need (milk, bananas, snacks)
+to the bottom of the shopping list.
+
+**💾 Backup & restore** — export everything (plan, custom recipes, approvals,
+favourites) as a JSON file and import it on another device or browser.
 
 Everything is saved in your browser (localStorage), so the plan, ticked-off
 shopping items, favourites and kid approvals survive between visits.

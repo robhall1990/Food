@@ -42,7 +42,7 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg); color: var(--ink); line-height: 1.5;
-    padding-bottom: 60px;
+    padding-bottom: 20px;
   }
   header {
     background: var(--card); border-bottom: 1px solid var(--line);
@@ -82,6 +82,7 @@
   }
   .btn:active { transform: scale(.97); }
   .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .btn.danger { background: var(--coral); }
   .btn.small { padding: 6px 10px; font-size: .8rem; border-radius: 8px; box-shadow: none; }
   .stats { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .stat {
@@ -96,6 +97,7 @@
     display: grid; grid-template-columns: 88px 1fr auto; gap: 14px; align-items: center;
   }
   .day-card.locked { outline: 2px solid var(--amber); }
+  .day-card.rest { background: transparent; box-shadow: none; border-style: dashed; }
   .day-label b { display: block; font-size: .95rem; }
   .day-label small { color: var(--ink-soft); }
   .meal-name { font-weight: 700; font-size: 1.02rem; cursor: pointer; }
@@ -108,6 +110,8 @@
   .chip.time { background: var(--amber-soft); color: #9a6a1d; }
   @media (prefers-color-scheme: dark) { .chip.time { color: var(--amber); } }
   .chip.kids { background: var(--coral-soft); color: var(--coral); }
+  .chip.mine { background: var(--amber-soft); color: #9a6a1d; }
+  @media (prefers-color-scheme: dark) { .chip.mine { color: var(--amber); } }
   .day-actions { display: flex; gap: 6px; }
   .icon-btn {
     border: 1px solid var(--line); background: var(--card); border-radius: 9px;
@@ -125,7 +129,7 @@
   /* ---- Recipes ---- */
   .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
   .search {
-    flex: 1; min-width: 200px; font: inherit; padding: 10px 14px;
+    flex: 1; min-width: 180px; font: inherit; padding: 10px 14px;
     border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
   }
   .filter-chip {
@@ -142,6 +146,11 @@
   .recipe-card:hover { transform: translateY(-2px); }
   .recipe-card .emoji { font-size: 1.9rem; }
   .recipe-card h3 { font-size: .95rem; margin: 6px 0 6px; line-height: 1.3; }
+  .recipe-card.add-card {
+    border: 2px dashed var(--green); background: transparent; box-shadow: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 130px; color: var(--green); font-weight: 700; gap: 6px; text-align: center;
+  }
   .fav-mark { position: absolute; top: 12px; right: 12px; font-size: 1rem; }
 
   /* ---- Shopping ---- */
@@ -155,9 +164,16 @@
   }
   .shop-item { display: flex; align-items: center; gap: 12px; padding: 9px 16px; border-top: 1px solid var(--line); cursor: pointer; }
   .shop-item:first-of-type { border-top: none; }
-  .shop-item input { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
+  .shop-item input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
   .shop-item.done .item-name { text-decoration: line-through; opacity: .45; }
   .item-qty { margin-left: auto; color: var(--ink-soft); font-size: .85rem; white-space: nowrap; }
+  .item-del { border: none; background: none; cursor: pointer; color: var(--coral); font-size: 1rem; padding: 0 2px; }
+  .extra-row { display: flex; gap: 8px; padding: 10px 16px; border-top: 1px solid var(--line); }
+  .extra-row input {
+    font: inherit; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); flex: 1; min-width: 0;
+  }
+  .extra-row input.qty { flex: 0 0 90px; }
 
   /* ---- Modal ---- */
   .overlay {
@@ -166,7 +182,7 @@
   }
   .overlay.open { display: flex; align-items: flex-start; justify-content: center; }
   .modal {
-    background: var(--card); border-radius: 18px; max-width: 560px; width: 100%;
+    background: var(--card); border-radius: 18px; max-width: 580px; width: 100%;
     padding: 26px; margin: 30px 0; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,.25);
   }
   .modal .close { position: absolute; top: 14px; right: 14px; }
@@ -185,11 +201,38 @@
     padding: 7px 14px; font: inherit; font-size: .85rem; cursor: pointer; font-weight: 600; color: var(--ink);
   }
   .approve-btn.yes { background: var(--green-soft); border-color: var(--green); color: var(--green-deep); }
-  .modal-actions { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
-  .modal-actions select {
+  .modal-actions { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+  .modal-actions select, .form-grid select, .form-grid input, .form-grid textarea, .ing-editor input, .ing-editor select {
     font: inherit; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--card); color: var(--ink); font-weight: 600;
+    background: var(--bg); color: var(--ink);
   }
+  .day-menu { display: grid; gap: 8px; margin-top: 16px; }
+  .day-menu button { text-align: left; }
+
+  /* ---- Recipe editor form ---- */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid label { font-size: .78rem; font-weight: 700; color: var(--ink-soft); display: block; margin-bottom: 3px; }
+  .form-grid input, .form-grid select, .form-grid textarea { width: 100%; }
+  .form-grid textarea { resize: vertical; min-height: 64px; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag-toggle {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink-soft);
+    border-radius: 99px; padding: 6px 12px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+  }
+  .tag-toggle.on { background: var(--green-soft); border-color: var(--green); color: var(--green-deep); }
+  .ing-editor { display: grid; gap: 6px; }
+  .ing-row { display: grid; grid-template-columns: 1fr 64px 84px 110px 32px; gap: 6px; align-items: center; }
+  .ing-row .del { border: none; background: none; color: var(--coral); font-size: 1.05rem; cursor: pointer; }
+  .form-error { color: var(--coral); font-size: .85rem; margin-top: 10px; display: none; }
+
+  footer {
+    max-width: 980px; margin: 30px auto 10px; padding: 0 20px;
+    display: flex; gap: 14px; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: .8rem; flex-wrap: wrap;
+  }
+  footer button { border: none; background: none; font: inherit; font-size: .8rem; color: var(--green); font-weight: 700; cursor: pointer; text-decoration: underline; }
+
   .toast {
     position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(80px);
     background: var(--ink); color: var(--bg); padding: 11px 20px; border-radius: 99px;
@@ -201,9 +244,11 @@
     .day-card { grid-template-columns: 1fr; gap: 8px; }
     .day-actions { justify-content: flex-end; }
     .day-label { display: flex; gap: 8px; align-items: baseline; }
+    .form-grid { grid-template-columns: 1fr; }
+    .ing-row { grid-template-columns: 1fr 52px 70px 90px 28px; }
   }
   @media print {
-    header, .week-head, .shop-head, .tabs, .shop-note button { display: none !important; }
+    header, .week-head, .shop-head, .tabs, footer, .extra-row, .item-del { display: none !important; }
     body { background: #fff; padding: 0; }
     .panel { display: none; }
     #panel-shop { display: block !important; }
@@ -247,6 +292,7 @@
       <button class="filter-chip" data-filter="kidfave">💚 Kid-approved</button>
       <button class="filter-chip" data-filter="batch">🍲 Batch &amp; freeze</button>
       <button class="filter-chip" data-filter="fun">🎉 Fun night</button>
+      <button class="filter-chip" data-filter="mine">✏️ My recipes</button>
     </div>
     <div class="recipe-grid" id="recipeGrid"></div>
   </section>
@@ -264,7 +310,14 @@
   </section>
 </main>
 
-<!-- RECIPE MODAL -->
+<footer>
+  <span>Your plan, recipes &amp; ticks live in this browser.</span>
+  <button id="exportBtn">💾 Export backup</button>
+  <button id="importBtn">📥 Import backup</button>
+  <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+</footer>
+
+<!-- MODAL -->
 <div class="overlay" id="overlay">
   <div class="modal" id="modal"></div>
 </div>
@@ -280,7 +333,7 @@
    kid: 1–3 = how reliably little ones eat it.
    note: serving tips for a 4-year-old & a 2-year-old.
    ========================================================= */
-const CATS = ["Fruit & Veg", "Fridge", "Pantry", "Bakery", "Frozen", "Herbs & Spices"];
+const CATS = ["Fruit & Veg", "Fridge", "Pantry", "Bakery", "Frozen", "Herbs & Spices", "Your extras"];
 const R = (id, name, emoji, cuisine, mins, tags, kid, note, ing) =>
   ({ id, name, emoji, cuisine, mins, tags, kid, note, ing });
 
@@ -404,7 +457,93 @@ const RECIPES = [
   R("eggcurry", "Coconut Egg & Spinach Curry", "🥚", "Indian", 30, ["quick"], 2,
     "Boiled eggs in a mild coconut sauce — protein-packed and gentle. Quarter the eggs for both kids. If the sauce is a no, eggs + rice + peas still makes a solid dinner.",
     [["eggs",8,"","Fridge"],["coconut milk",1,"tin","Pantry"],["spinach",150,"g","Fruit & Veg"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["mild curry powder",2,"tsp","Herbs & Spices"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"]]),
+
+  R("mascarpone", "Tomato & Mascarpone Pasta", "🍝", "Italian", 20, ["quick"], 3,
+    "The gentlest pasta sauce there is — creamy, sweet, zero heat. Stir spinach in finely chopped so it can't be picked out. A reliable 'everyone eats' night.",
+    [["pasta shapes",350,"g","Pantry"],["passata",400,"ml","Pantry"],["mascarpone",150,"g","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["baby spinach",80,"g","Fruit & Veg"],["parmesan-style cheese",40,"g","Fridge"],["fresh basil",1,"bunch","Herbs & Spices"]]),
+
+  R("toadhole", "Veggie Toad-in-the-Hole", "🍽️", "British", 45, ["weekend"], 2,
+    "Puffy Yorkshire batter is a guaranteed hit. Cut sausages lengthways then into half-moons for the 2-year-old — never coin-shaped slices. Serve with peas and a little gravy for dunking.",
+    [["veggie sausages",8,"","Frozen"],["plain flour",140,"g","Pantry"],["eggs",3,"","Fridge"],["milk",200,"ml","Fridge"],["frozen peas",200,"g","Frozen"],["veggie gravy granules",2,"tbsp","Pantry"],["broccoli",1,"head","Fruit & Veg"]]),
+
+  R("orzobroc", "One-Pot Broccoli Cheese Orzo", "🥦", "American", 25, ["quick"], 3,
+    "Chop the broccoli tiny so it melts into the cheesy sauce — 'green rice' goes down easier than 'trees' on a bad day. One pot, one spoon per kid, minimal washing up.",
+    [["orzo",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["grated cheddar",150,"g","Fridge"],["milk",200,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["frozen peas",100,"g","Frozen"]]),
+
+  R("tortilla", "Spanish Potato Tortilla & Salad", "🥚", "Spanish", 35, [], 2,
+    "Soft egg and potato is perfect self-feeding food. Serve the 2-year-old's wedge well cooled and cut into strips. Leftover slices make tomorrow's lunchbox.",
+    [["eggs",8,"","Fridge"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["olive oil",3,"tbsp","Pantry"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"]]),
+
+  R("stroganoff", "Creamy Mushroom Stroganoff", "🍄", "European", 25, ["quick"], 2,
+    "Mushrooms divide small people — chop them very fine or blitz half into the sauce so the flavour stays and the 'bits' vanish. Soft rice + creamy sauce is great toddler texture.",
+    [["mushrooms",500,"g","Fruit & Veg"],["crème fraîche",200,"ml","Fridge"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"],["low-salt veg stock cube",1,"","Pantry"]]),
+
+  R("enchiladas", "Bean & Cheese Enchiladas", "🌯", "Mexican", 45, ["weekend","batch"], 2,
+    "Keep the sauce mild and the cheese generous. Slice the kids' enchiladas into pinwheel rounds and let them cool — the middles hold heat like an oven.",
+    [["flour tortillas",8,"","Bakery"],["black beans",2,"tins","Pantry"],["passata",500,"ml","Pantry"],["grated cheddar",200,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]]),
+
+  R("gyoza", "Veggie Gyoza & Sticky Rice Night", "🥟", "Japanese", 20, ["quick","fun"], 3,
+    "Dumplings are basically designed for small hands. Halve them for the 2-year-old so the filling cools. Give everyone a little dish of very diluted soy for dipping — dipping is half the fun.",
+    [["frozen veggie gyoza",20,"","Frozen"],["rice",300,"g","Pantry"],["frozen edamame",150,"g","Frozen"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]]),
+
+  R("caulicheese", "Cauliflower Cheese & Potato Wedges", "🥬", "British", 45, ["weekend"], 2,
+    "Proper comfort food. Mash the cauliflower into the sauce for the 2-year-old. If the 4-year-old objects to cauliflower on principle, a cheese-sauce-covered wedge is a fine opening offer.",
+    [["cauliflower",1,"head","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",400,"ml","Fridge"],["plain flour",3,"tbsp","Pantry"],["butter",40,"g","Fridge"],["potatoes",800,"g","Fruit & Veg"],["frozen peas",150,"g","Frozen"]]),
+
+  R("souppinwheels", "Tomato Soup & Cheesy Pinwheels", "🍅", "British", 30, ["fun"], 3,
+    "Make the puff-pastry pinwheels together — rolling and sprinkling is a great 4-year-old job. Serve the soup lukewarm in small cups so the 2-year-old can drink it like hot chocolate.",
+    [["puff pastry sheet",1,"","Fridge"],["grated cheddar",120,"g","Fridge"],["green pesto",2,"tbsp","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",100,"ml","Fridge"]]),
+
+  R("sunshinebowl", "Sunshine Couscous & Halloumi Bowl", "🌞", "Greek", 20, ["quick"], 2,
+    "Couscous is brilliant toddler food — tiny, soft, scoopable. Halloumi is salty so keep the kids' cubes small and few. Hummus in the middle of the plate turns everything into a dip.",
+    [["couscous",250,"g","Pantry"],["halloumi",1,"block","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["hummus",200,"g","Fridge"],["lemon",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"]]),
+
+  R("chilli", "Mild Veggie Chilli & Fluffy Rice", "🌶️", "Mexican", 35, ["batch","freezer"], 2,
+    "Keep chilli powder at a whisper and add a pinch of cinnamon for sweetness. A spoon of soured cream instantly rescues any 'too spicy!' verdicts. Freezes brilliantly.",
+    [["kidney beans",2,"tins","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["red pepper",1,"","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["soured cream",150,"ml","Fridge"],["grated cheddar",80,"g","Fridge"]]),
+
+  R("gnocchibake", "Cheesy Gnocchi & Tomato Traybake", "🧀", "Italian", 30, [], 3,
+    "Everything in one tray, into the oven, done. Quarter the gnocchi for the 2-year-old and watch the melted mozzarella pockets — they stay volcanic long after the rest has cooled.",
+    [["gnocchi",800,"g","Fridge"],["cherry tomatoes",300,"g","Fruit & Veg"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["red pepper",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried oregano",1,"tsp","Herbs & Spices"]]),
+
+  R("sweetsour", "Sweet & Sour Veg with Rice", "🍍", "Chinese", 30, [], 2,
+    "Pineapple is the trojan horse here — most kids dive for it first and the veg follows. Cut the pineapple chunks and tofu small for the 2-year-old.",
+    [["rice",300,"g","Pantry"],["pineapple chunks",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["baby corn",100,"g","Fruit & Veg"],["firm tofu",300,"g","Fridge"],["tomato ketchup",3,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["rice vinegar",1,"tbsp","Pantry"]]),
+
+  R("carbonara", "Creamy Pea 'Carbonara'", "🍝", "Italian", 20, ["quick"], 3,
+    "A silky egg-and-cream sauce with sweet peas — no bacon needed. Use short pasta shapes for easier little forks, and toss the sauce off the heat so it stays glossy not scrambled.",
+    [["penne or fusilli",350,"g","Pantry"],["eggs",3,"","Fridge"],["crème fraîche",150,"ml","Fridge"],["parmesan-style cheese",60,"g","Fridge"],["frozen peas",200,"g","Frozen"],["garlic cloves",2,"","Fruit & Veg"],["black pepper",1,"pinch","Herbs & Spices"]]),
+
+  R("tagine", "Gentle Apricot & Chickpea Tagine", "🍑", "Moroccan", 35, ["batch"], 2,
+    "Sweet apricots make this the friendliest 'grown-up' dinner. Chop them small (dried fruit is chewy for a 2-year-old) and serve over couscous, which forgives even the messiest spoon technique.",
+    [["chickpeas",2,"tins","Pantry"],["dried apricots",100,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["couscous",250,"g","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["ground cinnamon",0.5,"tsp","Herbs & Spices"],["ground cumin",1,"tsp","Herbs & Spices"],["ground almonds",2,"tbsp","Pantry"]]),
+
+  R("toastie", "Bean & Cheese Toastie Night", "🥪", "British", 15, ["quick","fun"], 3,
+    "The official emergency dinner — fifteen minutes, everyone happy. Cut toasties into soldiers for dipping, mind the molten bean filling for the little ones, and round it out with veg sticks and fruit.",
+    [["bread",1,"loaf","Bakery"],["baked beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",30,"g","Fridge"],["cucumber",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["apples",2,"","Fruit & Veg"]]),
+
+  R("padthai", "Mild Veggie Pad Thai", "🍜", "Thai", 25, ["quick"], 2,
+    "Skip the chilli and lime on the kids' plates and snip their noodles short with scissors. Crushed peanuts are grown-ups only — whole and broken nuts aren't safe under 5.",
+    [["flat rice noodles",300,"g","Pantry"],["eggs",3,"","Fridge"],["beansprouts",150,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["smooth peanut butter",2,"tbsp","Pantry"],["low-salt soy sauce",3,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]]),
+
+  R("leekpotato", "Leek & Potato Soup with Cheese Toasts", "🥣", "British", 30, ["batch","freezer"], 2,
+    "Blitz it completely smooth — no surprise lumps, no complaints. Serve it thick enough to cling to a spoon, with cheese-on-toast dippers doing the heavy lifting.",
+    [["leeks",3,"","Fruit & Veg"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",150,"ml","Fridge"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",120,"g","Fridge"],["butter",30,"g","Fridge"]]),
+
+  R("bbqtofu", "Sticky BBQ Tofu Wraps", "🌯", "American", 25, ["quick"], 2,
+    "Sticky-sweet BBQ glaze does for tofu what it does for everything. Serve the 2-year-old's as a plate of bits — tofu cubes, tortilla strips, corn — rather than a wrap that unravels.",
+    [["firm tofu",400,"g","Fridge"],["BBQ sauce",4,"tbsp","Pantry"],["flour tortillas",8,"","Bakery"],["sweetcorn",1,"small tin","Pantry"],["little gem lettuce",1,"","Fruit & Veg"],["avocado",1,"","Fruit & Veg"],["grated cheddar",80,"g","Fridge"]]),
+
+  R("sushibowl", "Build-Your-Own Sushi Bowls", "🍣", "Japanese", 30, ["fun"], 2,
+    "Deconstructed sushi: sticky rice bowls with toppings to arrange. Snip nori into confetti, ribbon the cucumber with a peeler, and let the kids build. Weirdly effective with fussy eaters.",
+    [["sushi rice",300,"g","Pantry"],["cucumber",1,"","Fruit & Veg"],["avocado",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"],["nori sheets",2,"","Pantry"],["rice vinegar",2,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]]),
 ];
+
+/* Non-cooking nights */
+const PSEUDO = {
+  _leftovers: { id: "_leftovers", name: "Leftovers night", emoji: "🥡", cuisine: "", mins: 5, tags: [], kid: 3, note: "", ing: [] },
+  _out:       { id: "_out",       name: "Eating out / takeaway", emoji: "🍴", cuisine: "", mins: 0, tags: [], kid: 3, note: "", ing: [] },
+};
 
 /* ============ Family & portions ============ */
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -418,38 +557,52 @@ const DEFAULT_FAMILY = [
 /* ============ State ============ */
 const STORE_KEY = "herbi2";
 let state = load();
-function load() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (raw && Array.isArray(raw.week)) {
-      raw.family = (raw.family && raw.family.length === 4) ? raw.family : DEFAULT_FAMILY.map(m => ({...m}));
-      raw.checked = raw.checked || {};
-      raw.approvals = raw.approvals || {};
-      raw.favorites = raw.favorites || [];
-      raw.history = raw.history || [];
-      return raw;
-    }
-  } catch (e) { /* corrupted storage — start fresh */ }
+function normalize(raw) {
+  if (!raw || !Array.isArray(raw.week) || raw.week.length !== 7) return null;
+  raw.locked = (Array.isArray(raw.locked) && raw.locked.length === 7) ? raw.locked : Array(7).fill(false);
+  raw.family = (Array.isArray(raw.family) && raw.family.length === 4) ? raw.family : DEFAULT_FAMILY.map(m => ({...m}));
+  raw.checked = raw.checked || {};
+  raw.approvals = raw.approvals || {};
+  raw.favorites = raw.favorites || [];
+  raw.history = raw.history || [];
+  raw.custom = (raw.custom || []).filter(r => r && r.id && r.name);
+  raw.extras = raw.extras || [];
+  return raw;
+}
+function freshState() {
   return {
-    week: Array(7).fill(null),       // recipe ids or null
+    week: Array(7).fill(null),       // recipe ids (or pseudo ids) per day
     locked: Array(7).fill(false),
     favorites: [],                    // recipe ids
     approvals: {},                    // id -> {daughter:bool, son:bool}
     checked: {},                      // shopping item key -> bool
     history: [],                      // last plan's ids (variety between weeks)
+    custom: [],                       // user-added recipes
+    extras: [],                       // user-added shopping items [{n, q}]
     family: DEFAULT_FAMILY.map(m => ({...m})),
   };
 }
+function load() {
+  try {
+    const raw = normalize(JSON.parse(localStorage.getItem(STORE_KEY)));
+    if (raw) return raw;
+  } catch (e) { /* corrupted storage — start fresh */ }
+  return freshState();
+}
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-const byId = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+
+const BUILTIN_BYID = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+function allRecipes() { return RECIPES.concat(state.custom); }
+function getR(id) { return BUILTIN_BYID[id] || PSEUDO[id] || state.custom.find(r => r.id === id) || null; }
+function isCooking(id) { return id && !PSEUDO[id]; }
 const familyFactor = () => state.family.reduce((s, m) => s + (m.on ? m.factor : 0), 0);
 
 /* ============ Week planning ============ */
 function candidatesFor(dayIdx, usedIds, prevCuisine) {
-  return RECIPES.filter(r => {
+  return allRecipes().filter(r => {
     if (usedIds.has(r.id)) return false;
     if (dayIdx <= 3 && r.mins > 35) return false;          // school-night speed limit
-    if (r.cuisine === prevCuisine) return false;            // vary cuisines day to day
+    if (r.cuisine && r.cuisine === prevCuisine) return false; // vary cuisines day to day
     return true;
   });
 }
@@ -469,14 +622,15 @@ function planWeek() {
   const newWeek = state.week.slice();
   for (let i = 0; i < 7; i++) {
     if (state.locked[i] && newWeek[i]) { used.add(newWeek[i]); continue; }
-    const prev = i > 0 && newWeek[i-1] ? byId[newWeek[i-1]].cuisine : null;
+    const prevId = i > 0 ? newWeek[i-1] : null;
+    const prev = prevId && getR(prevId) ? getR(prevId).cuisine : null;
     let pool = candidatesFor(i, used, prev);
-    if (!pool.length) pool = RECIPES.filter(r => !used.has(r.id));
+    if (!pool.length) pool = allRecipes().filter(r => !used.has(r.id));
     pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
     newWeek[i] = pool[0].id;
     used.add(newWeek[i]);
   }
-  state.history = state.week.filter(Boolean);
+  state.history = state.week.filter(isCooking);
   state.week = newWeek;
   state.checked = {};
   save(); renderAll();
@@ -484,9 +638,10 @@ function planWeek() {
 }
 function swapDay(i) {
   const used = new Set(state.week.filter((id, j) => id && j !== i));
-  const prev = i > 0 && state.week[i-1] ? byId[state.week[i-1]].cuisine : null;
+  const prevId = i > 0 ? state.week[i-1] : null;
+  const prev = prevId && getR(prevId) ? getR(prevId).cuisine : null;
   let pool = candidatesFor(i, used, prev).filter(r => r.id !== state.week[i]);
-  if (!pool.length) pool = RECIPES.filter(r => !used.has(r.id) && r.id !== state.week[i]);
+  if (!pool.length) pool = allRecipes().filter(r => !used.has(r.id) && r.id !== state.week[i]);
   if (!pool.length) return;
   pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
   state.week[i] = pool[Math.floor(Math.random() * Math.min(4, pool.length))].id;
@@ -499,10 +654,11 @@ function shoppingList() {
   const scale = familyFactor() / 4;
   const map = new Map();
   state.week.forEach(id => {
-    if (!id) return;
-    byId[id].ing.forEach(([item, qty, unit, cat]) => {
+    const r = isCooking(id) ? getR(id) : null;
+    if (!r) return;
+    r.ing.forEach(([item, qty, unit, cat]) => {
       const key = item + "|" + unit;
-      const cur = map.get(key) || { item, unit, cat, qty: 0 };
+      const cur = map.get(key) || { item, unit, cat: CATS.includes(cat) ? cat : "Pantry", qty: 0 };
       cur.qty += qty * scale;
       map.set(key, cur);
     });
@@ -516,10 +672,10 @@ function shoppingList() {
   return groups;
 }
 function niceQty(q, unit) {
-  const u = unit.toLowerCase();
+  const u = (unit || "").toLowerCase();
   if (u.includes("tin") || u.includes("jar") || u.includes("block") || u.includes("ball") ||
       u.includes("loaf") || u.includes("cube") || u.includes("bunch") || u.includes("thumb") ||
-      u.includes("head") || u.includes("pinch") || u === "") {
+      u.includes("head") || u.includes("pinch") || u.includes("sheet") || u === "") {
     const n = Math.max(1, Math.ceil(q - 0.05));
     return unit ? `${n} ${unit}${n > 1 && !unit.endsWith("s") && !u.includes("pinch") ? "s" : ""}` : `${n}`;
   }
@@ -532,16 +688,20 @@ function listAsText() {
   const groups = shoppingList();
   let out = "🌿 Herbi shopping list\n";
   CATS.forEach(cat => {
-    if (!groups[cat]) return;
+    if (cat === "Your extras" || !groups[cat]) return;
     out += `\n${cat.toUpperCase()}\n`;
     groups[cat].forEach(e => { out += `  □ ${e.item} — ${e.display}\n`; });
   });
+  if (state.extras.length) {
+    out += `\nYOUR EXTRAS\n`;
+    state.extras.forEach(e => { out += `  □ ${e.n}${e.q ? " — " + e.q : ""}\n`; });
+  }
   return out;
 }
 
 /* ============ Rendering ============ */
 const $ = s => document.querySelector(s);
-function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
 function renderFamily() {
   $("#familyChips").innerHTML = state.family.map((m, i) =>
@@ -573,33 +733,38 @@ function renderWeek() {
       </div>`;
     return;
   }
-  const avg = Math.round(planned.reduce((s, id) => s + byId[id].mins, 0) / planned.length);
-  const approved = planned.filter(id => { const a = state.approvals[id] || {}; return a.daughter || a.son; }).length;
-  const quick = planned.filter(id => byId[id].mins <= 25).length;
+  const cooking = state.week.filter(isCooking);
+  const avg = cooking.length ? Math.round(cooking.reduce((s, id) => s + getR(id).mins, 0) / cooking.length) : 0;
+  const approved = cooking.filter(id => { const a = state.approvals[id] || {}; return a.daughter || a.son; }).length;
+  const quick = cooking.filter(id => getR(id).mins <= 25).length;
   $("#weekStats").innerHTML = `
     <div class="stat"><b>${avg} min</b>average cook time</div>
-    <div class="stat"><b>${approved}/7</b>already kid-approved</div>
+    <div class="stat"><b>${approved}/${cooking.length}</b>already kid-approved</div>
     <div class="stat"><b>${quick}</b>super-quick nights (≤25 min)</div>
     <div class="stat"><b>${familyFactor().toFixed(1)}×</b>portion scale for your crew</div>`;
 
   $("#dayList").innerHTML = state.week.map((id, i) => {
     const date = new Date(mon); date.setDate(mon.getDate() + i);
-    const r = id ? byId[id] : null;
+    const r = id ? getR(id) : null;
+    const pseudo = r && PSEUDO[r.id];
     return `
-    <div class="day-card ${state.locked[i] ? "locked" : ""}">
+    <div class="day-card ${state.locked[i] ? "locked" : ""} ${pseudo ? "rest" : ""}">
       <div class="day-label"><b>${DAYS[i]}</b><small>${date.toLocaleDateString(undefined, fmt)}</small></div>
       <div>
         ${r ? `
-        <div class="meal-name" onclick="openRecipe('${r.id}')">${r.emoji} ${esc(r.name)}</div>
+        <div class="meal-name" onclick="${pseudo ? `openDayMenu(${i})` : `openRecipe('${r.id}')`}">${r.emoji} ${esc(r.name)}</div>
         <div class="meal-meta">
+          ${pseudo ? `<span class="chip">😌 no cooking tonight</span>` : `
           <span class="chip time">⏱ ${r.mins} min</span>
           <span class="chip">${esc(r.cuisine)}</span>
           <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
-          ${kidBadges(r.id)}
-        </div>` : `<div class="meal-name" style="color:var(--ink-soft)">Nothing planned</div>`}
+          ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
+          ${kidBadges(r.id)}`}
+        </div>` : `<div class="meal-name" style="color:var(--ink-soft)" onclick="openDayMenu(${i})">Nothing planned — tap to choose</div>`}
       </div>
       <div class="day-actions">
         <button class="icon-btn" title="Swap for something else" onclick="swapDay(${i})">🔄</button>
+        <button class="icon-btn" title="More options for this day" onclick="openDayMenu(${i})">✏️</button>
         <button class="icon-btn" title="${state.locked[i] ? "Unlock" : "Lock this meal in"}" onclick="toggleLock(${i})">${state.locked[i] ? "🔒" : "🔓"}</button>
       </div>
     </div>`;
@@ -614,41 +779,68 @@ function kidBadges(id) {
 }
 function toggleLock(i) { state.locked[i] = !state.locked[i]; save(); renderWeek(); }
 
+/* Day menu: leftovers / eating out / clear */
+function openDayMenu(i) {
+  $("#modal").innerHTML = `
+    <button class="icon-btn close" onclick="closeModal()">✕</button>
+    <h2>${DAYS[i]}</h2>
+    <div class="day-menu">
+      <button class="btn ghost" onclick="closeModal(); switchTab('recipes')">🍲 Browse recipes to pick one</button>
+      <button class="btn ghost" onclick="setDay(${i}, '_leftovers')">🥡 Leftovers night</button>
+      <button class="btn ghost" onclick="setDay(${i}, '_out')">🍴 Eating out / takeaway</button>
+      <button class="btn ghost" onclick="setDay(${i}, null)">✖ Clear this day</button>
+    </div>`;
+  $("#overlay").classList.add("open");
+}
+function setDay(i, id) {
+  state.week[i] = id;
+  state.checked = {};
+  save(); renderAll(); closeModal();
+}
+
 let activeFilters = new Set();
 function renderRecipes() {
   const q = $("#searchBox").value.trim().toLowerCase();
-  const list = RECIPES.filter(r => {
+  const list = allRecipes().filter(r => {
     if (q && !(r.name + " " + r.cuisine).toLowerCase().includes(q)) return false;
     if (activeFilters.has("quick") && r.mins > 25) return false;
     if (activeFilters.has("fun") && !r.tags.includes("fun")) return false;
     if (activeFilters.has("batch") && !(r.tags.includes("batch") || r.tags.includes("freezer"))) return false;
+    if (activeFilters.has("mine") && !r.id.startsWith("c_")) return false;
     if (activeFilters.has("kidfave")) {
       const a = state.approvals[r.id] || {};
       if (!a.daughter && !a.son && r.kid < 3) return false;
     }
     return true;
   });
-  $("#recipeGrid").innerHTML = list.map(r => `
+  $("#recipeGrid").innerHTML =
+    `<div class="recipe-card add-card" onclick="openEditor(null)">
+      <div style="font-size:1.8rem">➕</div>
+      <div>Add your own recipe</div>
+    </div>` +
+    (list.map(r => `
     <div class="recipe-card" onclick="openRecipe('${r.id}')">
       ${state.favorites.includes(r.id) ? `<div class="fav-mark">❤️</div>` : ""}
       <div class="emoji">${r.emoji}</div>
       <h3>${esc(r.name)}</h3>
       <div class="meal-meta">
         <span class="chip time">⏱ ${r.mins}m</span>
-        <span class="chip">${esc(r.cuisine)}</span>
+        ${r.cuisine ? `<span class="chip">${esc(r.cuisine)}</span>` : ""}
         <span class="chip kids">${"💚".repeat(r.kid)}</span>
+        ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
         ${kidBadges(r.id)}
       </div>
-    </div>`).join("") || `<p style="color:var(--ink-soft)">No dinners match — try clearing a filter.</p>`;
+    </div>`).join("") || `<p style="color:var(--ink-soft);align-self:center">No dinners match — try clearing a filter.</p>`);
 }
 
 function renderShop() {
   const groups = shoppingList();
+  const cookingNights = state.week.filter(isCooking).length;
   const any = Object.keys(groups).length;
   $("#shopNote").innerHTML = any
-    ? `Everything for this week's seven dinners, scaled to <b>${familyFactor().toFixed(1)} adult portions</b> (2 grown-ups + a 4-year-old + a 2-year-old). Tap items as you shop.`
-    : "Plan your week first and the shopping list builds itself.";
-  $("#shopGroups").innerHTML = CATS.filter(c => groups[c]).map(cat => `
+    ? `Everything for this week's ${cookingNights} cooking night${cookingNights === 1 ? "" : "s"}, scaled to <b>${familyFactor().toFixed(1)} adult portions</b> (2 grown-ups + a 4-year-old + a 2-year-old). Tap items as you shop.`
+    : "Plan your week first and the shopping list builds itself. You can still add your own items below.";
+  const recipeGroups = CATS.filter(c => c !== "Your extras" && groups[c]).map(cat => `
     <div class="shop-group">
       <h3>${cat}</h3>
       ${groups[cat].map(e => {
@@ -661,30 +853,67 @@ function renderShop() {
         </label>`;
       }).join("")}
     </div>`).join("");
+  const extras = `
+    <div class="shop-group">
+      <h3>Your extras</h3>
+      ${state.extras.map((e, i) => {
+        const key = "extra|" + e.n;
+        const done = state.checked[key];
+        return `<label class="shop-item ${done ? "done" : ""}">
+          <input type="checkbox" ${done ? "checked" : ""} onchange="toggleCheck('${esc(key).replace(/'/g, "\\'")}')">
+          <span class="item-name">${esc(e.n)}</span>
+          <span class="item-qty">${esc(e.q || "")}</span>
+          <button class="item-del" title="Remove" onclick="event.preventDefault(); removeExtra(${i})">✕</button>
+        </label>`;
+      }).join("")}
+      <div class="extra-row">
+        <input id="extraName" placeholder="Add anything else… (milk, bananas, snacks)">
+        <input id="extraQty" class="qty" placeholder="qty">
+        <button class="btn small" onclick="addExtra()">Add</button>
+      </div>
+    </div>`;
+  $("#shopGroups").innerHTML = recipeGroups + extras;
+  const nameInput = $("#extraName");
+  nameInput.addEventListener("keydown", e => { if (e.key === "Enter") addExtra(); });
 }
 function toggleCheck(key) { state.checked[key] = !state.checked[key]; save(); renderShop(); }
+function addExtra() {
+  const n = $("#extraName").value.trim();
+  if (!n) return;
+  state.extras.push({ n, q: $("#extraQty").value.trim() });
+  save(); renderShop();
+  $("#extraName").focus();
+}
+function removeExtra(i) {
+  const e = state.extras.splice(i, 1)[0];
+  if (e) delete state.checked["extra|" + e.n];
+  save(); renderShop();
+}
 
 /* ============ Recipe modal ============ */
 function openRecipe(id) {
-  const r = byId[id];
+  const r = getR(id);
+  if (!r) return;
   const a = state.approvals[id] || {};
   const scale = familyFactor() / 4;
   const fav = state.favorites.includes(id);
+  const mine = id.startsWith("c_");
   $("#modal").innerHTML = `
     <button class="icon-btn close" onclick="closeModal()">✕</button>
     <h2>${r.emoji} ${esc(r.name)}</h2>
     <div class="meal-meta">
       <span class="chip time">⏱ ${r.mins} min</span>
-      <span class="chip">${esc(r.cuisine)}</span>
+      ${r.cuisine ? `<span class="chip">${esc(r.cuisine)}</span>` : ""}
       <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
-      ${r.tags.map(t => `<span class="chip">${t}</span>`).join("")}
+      ${r.tags.map(t => `<span class="chip">${esc(t)}</span>`).join("")}
+      ${mine ? `<span class="chip mine">✏️ your recipe</span>` : ""}
     </div>
-    <div class="section-label">👶 For the little ones</div>
-    <div class="little-ones">${esc(r.note)}</div>
-    <div class="section-label">🛒 Ingredients · scaled to your family (${familyFactor().toFixed(1)} portions)</div>
+    ${r.note ? `<div class="section-label">👶 For the little ones</div>
+    <div class="little-ones">${esc(r.note)}</div>` : ""}
+    ${r.ing.length ? `<div class="section-label">🛒 Ingredients · scaled to your family (${familyFactor().toFixed(1)} portions)</div>
     <ul class="ing-list">
       ${r.ing.map(([item, qty, unit]) => `<li><span>${esc(item)}</span><span>${esc(niceQty(qty * scale, unit))}</span></li>`).join("")}
-    </ul>
+    </ul>` : ""}
     <div class="section-label">Did the kids eat it?</div>
     <div class="approval-row">
       <button class="approve-btn ${a.daughter ? "yes" : ""}" onclick="toggleApproval('${id}','daughter')">👧 Daughter ${a.daughter ? "✓ loved it" : "— tap if she ate it"}</button>
@@ -692,6 +921,8 @@ function openRecipe(id) {
     </div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="toggleFav('${id}')">${fav ? "❤️ Favourited" : "🤍 Favourite"}</button>
+      ${mine ? `<button class="btn ghost" onclick="openEditor('${id}')">✏️ Edit</button>
+      <button class="btn danger" onclick="deleteCustom('${id}')">🗑 Delete</button>` : ""}
       <select id="addDaySel">
         <option value="">Add to a day…</option>
         ${DAYS.map((d, i) => `<option value="${i}">${d}</option>`).join("")}
@@ -717,8 +948,160 @@ function addToDay(id) {
   state.week[+v] = id;
   state.checked = {};
   save(); renderAll(); closeModal();
-  toast(`${byId[id].emoji} Added to ${DAYS[+v]}`);
+  toast(`${getR(id).emoji} Added to ${DAYS[+v]}`);
   switchTab("week");
+}
+
+/* ============ Custom recipe editor ============ */
+const EDIT_TAGS = [["fun","🎉 fun night"],["batch","🍲 batch-cook"],["freezer","🧊 freezes well"],["weekend","🛋 weekend meal"]];
+function openEditor(id) {
+  const r = id ? getR(id) : null;
+  const ing = r && r.ing.length ? r.ing : [["", "", "", "Fruit & Veg"]];
+  $("#modal").innerHTML = `
+    <button class="icon-btn close" onclick="closeModal()">✕</button>
+    <h2>${r ? "✏️ Edit recipe" : "➕ Add your own recipe"}</h2>
+    <div class="form-grid">
+      <div class="full">
+        <label for="f_name">Name *</label>
+        <input id="f_name" placeholder="e.g. Grandma's veggie pie" value="${r ? esc(r.name) : ""}" maxlength="60">
+      </div>
+      <div>
+        <label for="f_emoji">Emoji</label>
+        <input id="f_emoji" value="${r ? esc(r.emoji) : "🍽️"}" maxlength="4">
+      </div>
+      <div>
+        <label for="f_cuisine">Cuisine</label>
+        <input id="f_cuisine" list="cuisines" placeholder="e.g. Italian" value="${r ? esc(r.cuisine) : ""}" maxlength="24">
+        <datalist id="cuisines">${[...new Set(allRecipes().map(x => x.cuisine).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join("")}</datalist>
+      </div>
+      <div>
+        <label for="f_mins">Cook time (minutes)</label>
+        <input id="f_mins" type="number" min="5" max="240" value="${r ? r.mins : 30}">
+      </div>
+      <div>
+        <label for="f_kid">Kid-friendliness</label>
+        <select id="f_kid">
+          <option value="1" ${r && r.kid === 1 ? "selected" : ""}>💚 adventurous</option>
+          <option value="2" ${r && r.kid === 2 ? "selected" : ""}>💚💚 usually eaten</option>
+          <option value="3" ${!r || r.kid === 3 ? "selected" : ""}>💚💚💚 guaranteed hit</option>
+        </select>
+      </div>
+      <div class="full">
+        <label>Tags</label>
+        <div class="tag-row" id="f_tags">
+          ${EDIT_TAGS.map(([t, label]) => `<button type="button" class="tag-toggle ${r && r.tags.includes(t) ? "on" : ""}" data-tag="${t}">${label}</button>`).join("")}
+        </div>
+      </div>
+      <div class="full">
+        <label for="f_note">👶 Notes for the little ones (optional)</label>
+        <textarea id="f_note" placeholder="How to serve it for a 4-year-old and a 2-year-old…">${r ? esc(r.note) : ""}</textarea>
+      </div>
+      <div class="full">
+        <label>🛒 Ingredients — for 4 adult portions (Herbi scales them to your family)</label>
+        <div class="ing-editor" id="f_ings">
+          <div class="ing-row" style="font-size:.72rem;color:var(--ink-soft);font-weight:700">
+            <span>Item</span><span>Qty</span><span>Unit</span><span>Aisle</span><span></span>
+          </div>
+          ${ing.map(row => ingRowHtml(row)).join("")}
+        </div>
+        <button type="button" class="btn ghost small" style="margin-top:8px" onclick="addIngRow()">＋ Add ingredient</button>
+      </div>
+    </div>
+    <p class="form-error" id="f_error"></p>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveEditor(${id ? `'${id}'` : "null"})">${r ? "Save changes" : "Save recipe"}</button>
+    </div>`;
+  $("#f_tags").addEventListener("click", e => {
+    const b = e.target.closest(".tag-toggle");
+    if (b) b.classList.toggle("on");
+  });
+  $("#overlay").classList.add("open");
+  $("#f_name").focus();
+}
+function ingRowHtml([item, qty, unit, cat]) {
+  return `<div class="ing-row" data-ing>
+    <input class="i-item" placeholder="e.g. carrots" value="${esc(item || "")}" maxlength="48">
+    <input class="i-qty" type="number" min="0" step="any" placeholder="2" value="${qty === "" ? "" : qty}">
+    <input class="i-unit" list="units" placeholder="g / tin" value="${esc(unit || "")}" maxlength="16">
+    <select class="i-cat">${CATS.filter(c => c !== "Your extras").map(c => `<option ${c === cat ? "selected" : ""}>${c}</option>`).join("")}</select>
+    <button type="button" class="del" title="Remove" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+function addIngRow() {
+  $("#f_ings").insertAdjacentHTML("beforeend", ingRowHtml(["", "", "", "Fruit & Veg"]));
+  const rows = document.querySelectorAll("[data-ing]");
+  rows[rows.length - 1].querySelector(".i-item").focus();
+}
+function saveEditor(id) {
+  const name = $("#f_name").value.trim();
+  const err = $("#f_error");
+  if (!name) { err.textContent = "Give your recipe a name."; err.style.display = "block"; return; }
+  const mins = Math.min(240, Math.max(5, parseInt($("#f_mins").value, 10) || 30));
+  const ing = [...document.querySelectorAll("[data-ing]")].map(row => {
+    const item = row.querySelector(".i-item").value.trim();
+    if (!item) return null;
+    const qty = parseFloat(row.querySelector(".i-qty").value) || 1;
+    const unit = row.querySelector(".i-unit").value.trim();
+    const cat = row.querySelector(".i-cat").value;
+    return [item, qty, unit, cat];
+  }).filter(Boolean);
+  const recipe = {
+    id: id || ("c_" + Date.now().toString(36)),
+    name,
+    emoji: $("#f_emoji").value.trim() || "🍽️",
+    cuisine: $("#f_cuisine").value.trim(),
+    mins,
+    kid: parseInt($("#f_kid").value, 10),
+    tags: [...document.querySelectorAll("#f_tags .tag-toggle.on")].map(b => b.dataset.tag),
+    note: $("#f_note").value.trim(),
+    ing,
+  };
+  if (id) {
+    const idx = state.custom.findIndex(r => r.id === id);
+    if (idx >= 0) state.custom[idx] = recipe; else state.custom.push(recipe);
+  } else {
+    state.custom.push(recipe);
+  }
+  save(); renderAll(); closeModal();
+  toast(id ? "Recipe updated ✏️" : `${recipe.emoji} ${recipe.name} added to your library!`);
+  if (!id) { activeFilters.clear(); document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active")); switchTab("recipes"); renderRecipes(); }
+}
+function deleteCustom(id) {
+  const r = getR(id);
+  if (!r || !confirm(`Delete "${r.name}"? This can't be undone.`)) return;
+  state.custom = state.custom.filter(x => x.id !== id);
+  state.week = state.week.map(x => x === id ? null : x);
+  state.favorites = state.favorites.filter(x => x !== id);
+  delete state.approvals[id];
+  save(); renderAll(); closeModal();
+  toast("Recipe deleted");
+}
+
+/* ============ Backup ============ */
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `herbi-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Backup downloaded 💾");
+}
+function importBackup(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const raw = normalize(JSON.parse(reader.result));
+      if (!raw) throw new Error("bad shape");
+      state = raw;
+      save(); renderAll();
+      toast("Backup restored 📥");
+    } catch (e) {
+      toast("That file doesn't look like a Herbi backup");
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* ============ Chrome ============ */
@@ -757,6 +1140,12 @@ $("#copyBtn").addEventListener("click", () => {
     .catch(() => toast("Couldn't copy — try the print button"));
 });
 $("#printBtn").addEventListener("click", () => window.print());
+$("#exportBtn").addEventListener("click", exportBackup);
+$("#importBtn").addEventListener("click", () => $("#importFile").click());
+$("#importFile").addEventListener("change", e => {
+  if (e.target.files[0]) importBackup(e.target.files[0]);
+  e.target.value = "";
+});
 $("#familyChips").addEventListener("click", e => {
   const btn = e.target.closest("[data-member]");
   if (!btn) return;
