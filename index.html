@@ -195,6 +195,8 @@
   .ing-list { list-style: none; }
   .ing-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-size: .9rem; }
   .ing-list li span:last-child { color: var(--ink-soft); white-space: nowrap; }
+  .steps-list { padding-left: 22px; display: grid; gap: 8px; font-size: .9rem; }
+  .steps-list li::marker { color: var(--green); font-weight: 700; }
   .approval-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .approve-btn {
     border: 1px solid var(--line); background: var(--bg); border-radius: 99px;
@@ -261,7 +263,7 @@
 <header>
   <div class="header-row">
     <div class="logo">🌿 Herbi <span>2.0</span></div>
-    <div class="tagline">Plant-powered dinners for two grown-ups &amp; two small humans</div>
+    <div class="tagline">Easy family dinners for two grown-ups &amp; two small humans</div>
     <div class="family" id="familyChips" title="Tap a name to include/exclude them from portions"></div>
   </div>
   <nav class="tabs">
@@ -288,6 +290,8 @@
   <section class="panel" id="panel-recipes">
     <div class="filters">
       <input class="search" id="searchBox" type="search" placeholder="Search dinners…">
+      <button class="filter-chip" data-filter="veggie">🥕 Veggie</button>
+      <button class="filter-chip" data-filter="meat">🍗 Meat &amp; fish</button>
       <button class="filter-chip" data-filter="quick">⚡ 25 min or less</button>
       <button class="filter-chip" data-filter="kidfave">💚 Kid-approved</button>
       <button class="filter-chip" data-filter="batch">🍲 Batch &amp; freeze</button>
@@ -331,218 +335,590 @@
    Recipe library — quantities are for 4 adult portions and
    get scaled to whoever's eating (see FAMILY below).
    kid: 1–3 = how reliably little ones eat it.
+   diet: v = veggie, m = meat, f = fish.
    note: serving tips for a 4-year-old & a 2-year-old.
    ========================================================= */
-const CATS = ["Fruit & Veg", "Fridge", "Pantry", "Bakery", "Frozen", "Herbs & Spices", "Your extras"];
-const R = (id, name, emoji, cuisine, mins, tags, kid, note, ing) =>
-  ({ id, name, emoji, cuisine, mins, tags, kid, note, ing });
+const CATS = ["Fruit & Veg", "Meat & Fish", "Fridge", "Pantry", "Bakery", "Frozen", "Herbs & Spices", "Your extras"];
+const R = (id, name, emoji, cuisine, mins, tags, kid, diet, note, ing, steps) =>
+  ({ id, name, emoji, cuisine, mins, tags, kid, diet, note, ing, steps });
 
 const RECIPES = [
-  R("bolognese", "Hidden-Veg Lentil Bolognese", "🍝", "Italian", 30, ["quick","batch","freezer"], 3,
+  /* ============ VEGGIE ============ */
+  R("bolognese", "Hidden-Veg Lentil Bolognese", "🍝", "Italian", 30, ["quick","batch","freezer"], 3, "v",
     "Blitz the sauce smooth for the 2-year-old — carrots and lentils vanish completely. Serve the 4-year-old's pasta with sauce on the side if she's in a 'nothing touching' phase. Cut spaghetti short for little mouths.",
-    [["spaghetti",350,"g","Pantry"],["red lentils (dried)",150,"g","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["carrots",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["dried oregano",1,"tsp","Herbs & Spices"],["parmesan-style cheese",40,"g","Fridge"]]),
+    [["spaghetti",350,"g","Pantry"],["red lentils (dried)",150,"g","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["carrots",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["dried oregano",1,"tsp","Herbs & Spices"],["parmesan-style cheese",40,"g","Fridge"]],
+    ["Finely chop (or grate) the onion, carrots and celery and soften in a little oil for 8 minutes.",
+     "Add the garlic and oregano for 1 minute, then the lentils, tomatoes and 400ml water. Simmer 18–20 minutes until the lentils are soft, topping up water if it thickens too fast.",
+     "Meanwhile cook the spaghetti following the pack.",
+     "Blitz some sauce smooth for the little ones if needed, toss the rest with the pasta and serve with parmesan."]),
 
-  R("quesadillas", "Sweet Potato & Black Bean Quesadillas", "🌯", "Mexican", 20, ["quick","fun"], 3,
+  R("quesadillas", "Sweet Potato & Black Bean Quesadillas", "🌯", "Mexican", 20, ["quick","fun"], 3, "v",
     "Cut into small triangles — perfect toddler hand food. Skip any chilli in the kids' half. Cool the 2-year-old's pieces before serving; melted cheese stays hot inside.",
-    [["flour tortillas",8,"","Bakery"],["sweet potatoes",2,"","Fruit & Veg"],["black beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["avocado",1,"","Fruit & Veg"],["lime",1,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]]),
+    [["flour tortillas",8,"","Bakery"],["sweet potatoes",2,"","Fruit & Veg"],["black beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["avocado",1,"","Fruit & Veg"],["lime",1,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]],
+    ["Microwave or steam the diced sweet potato until soft (about 8 minutes), then mash with the drained beans, paprika and a squeeze of lime.",
+     "Spread the mash over a tortilla, scatter with cheese and sweetcorn, and press a second tortilla on top.",
+     "Toast in a dry frying pan for 2–3 minutes each side until golden and melted.",
+     "Cut into triangles and serve with smashed avocado for dipping."]),
 
-  R("korma", "Creamy Coconut Chickpea Korma", "🍛", "Indian", 30, ["batch","freezer"], 3,
+  R("korma", "Creamy Coconut Chickpea Korma", "🍛", "Indian", 30, ["batch","freezer"], 3, "v",
     "Naturally mild and sweet — a great first curry. Lightly mash the chickpeas on the 2-year-old's plate (whole ones can be slippery). Naan strips are great for dipping practice.",
-    [["chickpeas",2,"tins","Pantry"],["coconut milk",1,"tin","Pantry"],["korma paste (mild)",3,"tbsp","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["spinach",100,"g","Fruit & Veg"],["naan breads",2,"","Bakery"],["ground almonds",2,"tbsp","Pantry"]]),
+    [["chickpeas",2,"tins","Pantry"],["coconut milk",1,"tin","Pantry"],["korma paste (mild)",3,"tbsp","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["spinach",100,"g","Fruit & Veg"],["naan breads",2,"","Bakery"],["ground almonds",2,"tbsp","Pantry"]],
+    ["Soften the chopped onion in oil for 6–8 minutes, then stir in the korma paste for 1 minute.",
+     "Add the drained chickpeas, coconut milk and ground almonds. Simmer gently for 15 minutes.",
+     "Cook the rice following the pack and warm the naans.",
+     "Stir the spinach through the curry until just wilted, then serve."]),
 
-  R("friedrice", "Rainbow Veggie Fried Rice", "🍚", "Chinese", 20, ["quick"], 3,
+  R("friedrice", "Rainbow Veggie Fried Rice", "🍚", "Chinese", 20, ["quick"], 3, "v",
     "Use low-salt soy sauce and go easy for the under-5s. Scramble the egg into small soft pieces. Peas and sweetcorn are usually the first things eaten — load them up.",
-    [["rice",300,"g","Pantry"],["eggs",3,"","Fridge"],["frozen peas",150,"g","Frozen"],["sweetcorn",1,"small tin","Pantry"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["sesame oil",1,"tbsp","Pantry"]]),
+    [["rice",300,"g","Pantry"],["eggs",3,"","Fridge"],["frozen peas",150,"g","Frozen"],["sweetcorn",1,"small tin","Pantry"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["sesame oil",1,"tbsp","Pantry"]],
+    ["Cook the rice (or use yesterday's cold rice — it fries better).",
+     "Stir-fry the diced carrots in a hot pan for 3 minutes, then add the peas and sweetcorn.",
+     "Push everything to one side and scramble the eggs into small soft pieces.",
+     "Add the rice, soy sauce and sesame oil and toss for 2 minutes. Scatter with spring onions."]),
 
-  R("pitapizza", "Margherita Pita Pizzas", "🍕", "Italian", 15, ["quick","fun"], 3,
+  R("pitapizza", "Margherita Pita Pizzas", "🍕", "Italian", 15, ["quick","fun"], 3, "v",
     "Let the 4-year-old spread her own sauce and sprinkle cheese — ownership = eating. Cut the 2-year-old's into fingers and check the tomato isn't lava-hot underneath.",
-    [["pita breads",6,"","Bakery"],["passata",200,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olive oil",1,"tbsp","Pantry"]]),
+    [["pita breads",6,"","Bakery"],["passata",200,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olive oil",1,"tbsp","Pantry"]],
+    ["Heat the oven to 200°C and lay the pitas on a baking tray.",
+     "Spread each with passata, tear over the mozzarella and add halved cherry tomatoes.",
+     "Bake for 8–10 minutes until melted and bubbling.",
+     "Basil and a drizzle of oil for the grown-ups; cut the kids' into fingers and let them cool."]),
 
-  R("maccheese", "Butternut Mac & Cheese", "🧀", "American", 35, ["batch","freezer"], 3,
+  R("maccheese", "Butternut Mac & Cheese", "🧀", "American", 35, ["batch","freezer"], 3, "v",
     "The squash makes the sauce sweet and silky — usually a clean-plate meal. Use small macaroni for the 2-year-old. Stir in peas for a one-bowl dinner.",
-    [["macaroni",350,"g","Pantry"],["butternut squash",0.5,"","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",300,"ml","Fridge"],["butter",30,"g","Fridge"],["plain flour",2,"tbsp","Pantry"],["frozen peas",150,"g","Frozen"],["dijon mustard",1,"tsp","Pantry"]]),
+    [["macaroni",350,"g","Pantry"],["butternut squash",0.5,"","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",300,"ml","Fridge"],["butter",30,"g","Fridge"],["plain flour",2,"tbsp","Pantry"],["frozen peas",150,"g","Frozen"],["dijon mustard",1,"tsp","Pantry"]],
+    ["Steam or microwave the diced squash until very soft, then blitz or mash smooth.",
+     "Cook the macaroni, throwing the peas in for the last 2 minutes.",
+     "Melt the butter, stir in the flour for 1 minute, then whisk in the milk to a smooth sauce. Add the cheese, squash and mustard.",
+     "Stir the sauce through the pasta. Grill 5 minutes for a crispy top if you like."]),
 
-  R("tacos", "Build-Your-Own Bean Tacos", "🌮", "Mexican", 25, ["quick","fun"], 3,
+  R("tacos", "Build-Your-Own Bean Tacos", "🌮", "Mexican", 25, ["quick","fun"], 3, "v",
     "Deconstruct completely for the kids: little piles of beans, cheese, tomato and soft tortilla strips. Halve or quarter cherry tomatoes for the 2-year-old — whole ones are a choking risk.",
-    [["taco shells or mini tortillas",8,"","Bakery"],["refried beans",1,"tin","Pantry"],["grated cheddar",120,"g","Fridge"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["avocado",1,"","Fruit & Veg"],["mild taco seasoning",1,"tbsp","Herbs & Spices"]]),
+    [["taco shells or mini tortillas",8,"","Bakery"],["refried beans",1,"tin","Pantry"],["grated cheddar",120,"g","Fridge"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["avocado",1,"","Fruit & Veg"],["mild taco seasoning",1,"tbsp","Herbs & Spices"]],
+    ["Warm the refried beans in a pan with the taco seasoning and a splash of water.",
+     "Warm the shells or tortillas following the pack.",
+     "Put everything on the table in little bowls — beans, cheese, chopped salad, soured cream, avocado.",
+     "Everyone builds their own; make deconstructed plates for the kids."]),
 
-  R("teriyaki", "Sticky Teriyaki Tofu Rice Bowls", "🍱", "Japanese", 25, ["quick"], 2,
+  R("teriyaki", "Sticky Teriyaki Tofu Rice Bowls", "🍱", "Japanese", 25, ["quick"], 2, "v",
     "The sticky-sweet glaze wins most kids over. Cut tofu into small cubes for the 2-year-old, and steam the broccoli soft rather than crunchy for both kids.",
-    [["firm tofu",400,"g","Fridge"],["rice",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["honey or maple syrup",2,"tbsp","Pantry"],["garlic cloves",2,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["sesame seeds",1,"tbsp","Pantry"]]),
+    [["firm tofu",400,"g","Fridge"],["rice",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["low-salt soy sauce",3,"tbsp","Pantry"],["honey or maple syrup",2,"tbsp","Pantry"],["garlic cloves",2,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["sesame seeds",1,"tbsp","Pantry"]],
+    ["Get the rice on and steam the broccoli until soft.",
+     "Pat the tofu dry, cube it, and fry in a little oil until golden on all sides.",
+     "Add the soy, honey, grated garlic and ginger with a splash of water and bubble until sticky.",
+     "Build bowls of rice, tofu and broccoli, and scatter with sesame seeds."]),
 
-  R("minestrone", "Minestrone with Tiny Pasta", "🥣", "Italian", 35, ["batch","freezer"], 2,
+  R("minestrone", "Minestrone with Tiny Pasta", "🥣", "Italian", 35, ["batch","freezer"], 2, "v",
     "Use the smallest pasta you can find (orzo/stelline) — easy on a toddler spoon. Serve the 2-year-old's portion thick, more stew than soup, with bread for dipping.",
-    [["orzo or tiny pasta",200,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["cannellini beans",1,"tin","Pantry"],["carrots",2,"","Fruit & Veg"],["courgette",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["crusty bread",1,"loaf","Bakery"]]),
+    [["orzo or tiny pasta",200,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["cannellini beans",1,"tin","Pantry"],["carrots",2,"","Fruit & Veg"],["courgette",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["crusty bread",1,"loaf","Bakery"]],
+    ["Soften the finely diced carrot, celery and courgette in oil for 8 minutes.",
+     "Add the tomatoes, 1 litre of stock and the drained beans. Simmer 10 minutes.",
+     "Add the orzo and simmer until tender (check the pack time).",
+     "Ladle the kids' portions thick, with bread for dunking."]),
 
-  R("nuggets", "Chickpea Nuggets & Sweet Potato Fries", "🍟", "American", 35, ["fun","freezer"], 3,
+  R("nuggets", "Chickpea Nuggets & Sweet Potato Fries", "🍟", "American", 35, ["fun","freezer"], 3, "v",
     "Homemade nuggets, zero mystery. Make a few mini ones for the 2-year-old. Serve with peas or cucumber sticks and a yogurt dip — dips double vegetable intake.",
-    [["chickpeas",2,"tins","Pantry"],["breadcrumbs",100,"g","Pantry"],["sweet potatoes",3,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["frozen peas",200,"g","Frozen"],["natural yogurt",150,"ml","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]]),
+    [["chickpeas",2,"tins","Pantry"],["breadcrumbs",100,"g","Pantry"],["sweet potatoes",3,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["frozen peas",200,"g","Frozen"],["natural yogurt",150,"ml","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"]],
+    ["Heat the oven to 200°C. Cut the sweet potatoes into fries, toss in oil and bake for 25 minutes.",
+     "Blitz the drained chickpeas with the flour and paprika, and shape into nuggets (a few mini ones for the toddler).",
+     "Roll in breadcrumbs and bake for 15–18 minutes until crisp.",
+     "Serve with peas, cucumber sticks and a yogurt dip."]),
 
-  R("peanutnoodles", "Mild Peanut Butter Noodles", "🍜", "Thai", 20, ["quick"], 2,
+  R("peanutnoodles", "Mild Peanut Butter Noodles", "🍜", "Thai", 20, ["quick"], 2, "v",
     "Smooth peanut butter only (never whole nuts under 5). Rinse the kids' noodles in cool water so they can dig in straight away. Skip lime and chilli on their portions.",
-    [["egg noodles",300,"g","Pantry"],["smooth peanut butter",4,"tbsp","Pantry"],["coconut milk",0.5,"tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["sugar snap peas",150,"g","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]]),
+    [["egg noodles",300,"g","Pantry"],["smooth peanut butter",4,"tbsp","Pantry"],["coconut milk",0.5,"tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["sugar snap peas",150,"g","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]],
+    ["Cook the noodles following the pack.",
+     "Warm the peanut butter, coconut milk and soy in a small pan into a smooth sauce.",
+     "Stir-fry the pepper strips, carrot ribbons and sugar snaps for 3–4 minutes.",
+     "Toss everything together. Lime and chilli for the grown-ups only."]),
 
-  R("shepherdless", "Lentil Shepherd-less Pie", "🥧", "British", 50, ["weekend","batch","freezer"], 2,
+  R("shepherdless", "Lentil Shepherd-less Pie", "🥧", "British", 50, ["weekend","batch","freezer"], 2, "v",
     "Cosy weekend food. Mash is toddler heaven; if the lentil layer gets rejected, mix a spoonful through the mash rather than serving it separately.",
-    [["green or brown lentils",2,"tins","Pantry"],["potatoes",1,"kg","Fruit & Veg"],["carrots",3,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"],["milk",50,"ml","Fridge"],["butter",40,"g","Fridge"],["dried thyme",1,"tsp","Herbs & Spices"]]),
+    [["green or brown lentils",2,"tins","Pantry"],["potatoes",1,"kg","Fruit & Veg"],["carrots",3,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"],["milk",50,"ml","Fridge"],["butter",40,"g","Fridge"],["dried thyme",1,"tsp","Herbs & Spices"]],
+    ["Boil the potatoes and mash with the butter and milk.",
+     "Soften the onion and diced carrot for 8 minutes, then add the lentils, purée, thyme and a splash of stock or water. Simmer 10 minutes and stir in the peas.",
+     "Spoon into a baking dish and top with the mash.",
+     "Bake at 200°C for 20 minutes until golden on top."]),
 
-  R("traybake", "Veggie Sausage & Roast Veg Traybake", "🥘", "British", 40, [], 3,
+  R("traybake", "Veggie Sausage & Roast Veg Traybake", "🥘", "British", 40, [], 3, "v",
     "One tray, no washing up mountain. Cut sausages lengthways then into half-moons for the 2-year-old (round slices are a choking shape). Roasted sweet potato is usually the favourite.",
-    [["veggie sausages",8,"","Frozen"],["sweet potatoes",2,"","Fruit & Veg"],["red pepper",2,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["baby potatoes",500,"g","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried rosemary",1,"tsp","Herbs & Spices"]]),
+    [["veggie sausages",8,"","Frozen"],["sweet potatoes",2,"","Fruit & Veg"],["red pepper",2,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["baby potatoes",500,"g","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried rosemary",1,"tsp","Herbs & Spices"]],
+    ["Heat the oven to 200°C. Chunk all the veg and halve the baby potatoes.",
+     "Toss everything except the sausages in oil and rosemary in a big roasting tray. Roast 15 minutes.",
+     "Nestle the sausages in and roast another 20–25 minutes, turning once.",
+     "Cut the kids' sausages lengthways then into half-moons."]),
 
-  R("falafel", "Falafel Pockets with Yogurt Dip", "🥙", "Middle Eastern", 30, [], 2,
+  R("falafel", "Falafel Pockets with Yogurt Dip", "🥙", "Middle Eastern", 30, [], 2, "v",
     "Crumble falafel into the 2-year-old's pita rather than serving whole balls. The yogurt dip is the gateway — most kids will eat anything they can dunk.",
-    [["falafel",12,"","Fridge"],["pita breads",6,"","Bakery"],["natural yogurt",200,"ml","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",150,"g","Fruit & Veg"],["hummus",200,"g","Fridge"],["little gem lettuce",1,"","Fruit & Veg"],["lemon",1,"","Fruit & Veg"]]),
+    [["falafel",12,"","Fridge"],["pita breads",6,"","Bakery"],["natural yogurt",200,"ml","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",150,"g","Fruit & Veg"],["hummus",200,"g","Fridge"],["little gem lettuce",1,"","Fruit & Veg"],["lemon",1,"","Fruit & Veg"]],
+    ["Warm the falafel following the pack.",
+     "Stir grated cucumber and a squeeze of lemon into the yogurt for the dip.",
+     "Warm the pitas and chop the salad (halve the cherry tomatoes for the little ones).",
+     "Stuff, dollop, dip. Crumble the toddler's falafel into his pita."]),
 
-  R("risotto", "Creamy Tomato & Pea Risotto", "🍅", "Italian", 40, [], 3,
+  R("risotto", "Creamy Tomato & Pea Risotto", "🍅", "Italian", 40, [], 3, "v",
     "Soft, scoopable, mild — brilliant toddler texture. Let it cool to warm for the 2-year-old; risotto holds heat. The 4-year-old can help stir (supervised) and will be prouder of dinner for it.",
-    [["risotto rice",320,"g","Pantry"],["passata",300,"ml","Pantry"],["frozen peas",200,"g","Frozen"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["parmesan-style cheese",50,"g","Fridge"],["butter",30,"g","Fridge"]]),
+    [["risotto rice",320,"g","Pantry"],["passata",300,"ml","Pantry"],["frozen peas",200,"g","Frozen"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["parmesan-style cheese",50,"g","Fridge"],["butter",30,"g","Fridge"]],
+    ["Soften the chopped onion and garlic in half the butter for 5 minutes.",
+     "Stir in the rice for 1 minute, then add hot stock a ladle at a time, stirring, for 18–20 minutes.",
+     "Stir in the passata and peas for the last 5 minutes.",
+     "Finish with parmesan and the rest of the butter. Rest 2 minutes — and cool the kids' bowls well."]),
 
-  R("dhal", "Golden Coconut Dhal & Fluffy Rice", "🥥", "Indian", 35, ["batch","freezer"], 2,
+  R("dhal", "Golden Coconut Dhal & Fluffy Rice", "🥥", "Indian", 35, ["batch","freezer"], 2, "v",
     "Mild, creamy and cheap as chips. Serve the kids' dhal thick like a purée with rice stirred through. Freeze leftovers flat in bags for instant future dinners.",
-    [["red lentils (dried)",300,"g","Pantry"],["coconut milk",1,"tin","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["ground turmeric",1,"tsp","Herbs & Spices"],["mild curry powder",2,"tsp","Herbs & Spices"],["naan breads",2,"","Bakery"]]),
+    [["red lentils (dried)",300,"g","Pantry"],["coconut milk",1,"tin","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["ground turmeric",1,"tsp","Herbs & Spices"],["mild curry powder",2,"tsp","Herbs & Spices"],["naan breads",2,"","Bakery"]],
+    ["Soften the onion, then add the garlic, ginger and spices for 1 minute.",
+     "Add the rinsed lentils, coconut milk and 600ml water. Simmer 20–25 minutes, stirring now and then, until thick and golden.",
+     "Cook the rice and warm the naans.",
+     "Serve the kids' dhal thick with rice stirred through."]),
 
-  R("gnocchi", "Gnocchi with Peas & Gentle Pesto", "🟢", "Italian", 15, ["quick"], 3,
+  R("gnocchi", "Gnocchi with Peas & Gentle Pesto", "🟢", "Italian", 15, ["quick"], 3, "v",
     "Fifteen minutes, one pan of boiling water. Quarter the gnocchi for the 2-year-old — they're exactly the wrong size whole. Loosen pesto with a little pasta water so it's not too intense.",
-    [["gnocchi",800,"g","Fridge"],["green pesto",1,"jar","Pantry"],["frozen peas",200,"g","Frozen"],["crème fraîche",100,"ml","Fridge"],["parmesan-style cheese",40,"g","Fridge"],["baby spinach",80,"g","Fruit & Veg"]]),
+    [["gnocchi",800,"g","Fridge"],["green pesto",1,"jar","Pantry"],["frozen peas",200,"g","Frozen"],["crème fraîche",100,"ml","Fridge"],["parmesan-style cheese",40,"g","Fridge"],["baby spinach",80,"g","Fruit & Veg"]],
+    ["Boil the gnocchi until they float (2–3 minutes), adding the peas for the last 2 minutes.",
+     "Drain, saving a cup of the cooking water.",
+     "Stir through the pesto and crème fraîche, loosened with a splash of the water, and let the spinach wilt in.",
+     "Quarter the toddler's gnocchi. Parmesan on top."]),
 
-  R("burritobowl", "Build-Your-Own Burrito Bowls", "🥗", "Mexican", 25, ["quick","fun"], 3,
+  R("burritobowl", "Build-Your-Own Burrito Bowls", "🥗", "Mexican", 25, ["quick","fun"], 3, "v",
     "Everyone assembles their own — the 4-year-old gets full control, which kills most protests. Mash avocado and beans together for the 2-year-old with rice: instant baby burrito bowl.",
-    [["rice",300,"g","Pantry"],["black beans",2,"tins","Pantry"],["sweetcorn",1,"tin","Pantry"],["avocado",2,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["grated cheddar",120,"g","Fridge"],["soured cream",150,"ml","Fridge"],["lime",2,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]]),
+    [["rice",300,"g","Pantry"],["black beans",2,"tins","Pantry"],["sweetcorn",1,"tin","Pantry"],["avocado",2,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["grated cheddar",120,"g","Fridge"],["soured cream",150,"ml","Fridge"],["lime",2,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]],
+    ["Cook the rice with the fajita seasoning stirred through.",
+     "Warm the beans; drain the sweetcorn; chop the tomatoes and avocado.",
+     "Lay everything out in bowls and let everyone build their own.",
+     "For the 2-year-old: mash avocado and beans into rice — instant baby burrito bowl."]),
 
-  R("burgers", "Veggie Burgers & Corn on the Cob", "🍔", "American", 30, ["fun"], 3,
+  R("burgers", "Veggie Burgers & Corn on the Cob", "🍔", "American", 30, ["fun"], 3, "v",
     "Serve the 2-year-old's burger as pieces with the bun on the side — whole burgers are too big a bite. Cut corn kernels off the cob for him; the 4-year-old will want the whole cob like a grown-up.",
-    [["veggie burgers",4,"","Frozen"],["burger buns",4,"","Bakery"],["corn on the cob",4,"","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["tomatoes",2,"","Fruit & Veg"],["cheese slices",4,"","Fridge"],["potato wedges",600,"g","Frozen"]]),
+    [["veggie burgers",4,"","Frozen"],["burger buns",4,"","Bakery"],["corn on the cob",4,"","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["tomatoes",2,"","Fruit & Veg"],["cheese slices",4,"","Fridge"],["potato wedges",600,"g","Frozen"]],
+    ["Get the wedges in the oven following the pack.",
+     "Cook the burgers, laying a cheese slice on each for the last minute.",
+     "Boil the corn for 5 minutes.",
+     "Build the burgers; cut the toddler's into pieces and slice his corn kernels off the cob."]),
 
-  R("misonoodle", "Gentle Miso Noodle Soup", "🍥", "Japanese", 25, ["quick"], 2,
+  R("misonoodle", "Gentle Miso Noodle Soup", "🍥", "Japanese", 25, ["quick"], 2, "v",
     "Serve the kids' bowls barely warm with noodles snipped short (scissors are the ultimate toddler-dinner tool). Keep their broth light on miso — it's salty.",
-    [["udon or egg noodles",300,"g","Pantry"],["white miso paste",3,"tbsp","Pantry"],["firm tofu",300,"g","Fridge"],["baby corn",100,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",3,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"]]),
+    [["udon or egg noodles",300,"g","Pantry"],["white miso paste",3,"tbsp","Pantry"],["firm tofu",300,"g","Fridge"],["baby corn",100,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",3,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"]],
+    ["Simmer the sliced carrots and baby corn in 1 litre of water for 5 minutes.",
+     "Add the noodles, cubed tofu and edamame and cook following the noodle pack.",
+     "Take off the heat and whisk in the miso (don't boil it).",
+     "Cool the kids' bowls and snip their noodles short."]),
 
-  R("jackets", "Loaded Jacket Potatoes", "🥔", "British", 60, ["weekend"], 3,
+  R("jackets", "Loaded Jacket Potatoes", "🥔", "British", 60, ["weekend"], 3, "v",
     "Almost zero effort — the oven does everything. Scoop the 2-year-old's potato out of the skin and mash with beans and cheese. Classic for a reason.",
-    [["baking potatoes",4,"","Fruit & Veg"],["baked beans",2,"tins","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",40,"g","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"]]),
+    [["baking potatoes",4,"","Fruit & Veg"],["baked beans",2,"tins","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",40,"g","Fridge"],["cucumber",0.5,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"]],
+    ["Prick the potatoes and bake at 200°C for about an hour (or microwave 10 minutes then oven 20 for speed).",
+     "Warm the beans just before serving.",
+     "Split, butter, and load with beans and cheese.",
+     "Scoop and mash the toddler's. Veg sticks on the side."]),
 
-  R("pastashells", "Spinach & Ricotta Pasta Bake", "🐚", "Italian", 45, ["weekend","batch"], 2,
+  R("pastashells", "Spinach & Ricotta Pasta Bake", "🐚", "Italian", 45, ["weekend","batch"], 2, "v",
     "A soft, mild bake that hides a lot of spinach. Chop it very finely so there are no 'green bits' to pick out. Portion the kids' servings early so they cool in time.",
-    [["large pasta shells or penne",350,"g","Pantry"],["ricotta",250,"g","Fridge"],["spinach",200,"g","Fruit & Veg"],["passata",500,"ml","Pantry"],["mozzarella",1,"ball","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["nutmeg",1,"pinch","Herbs & Spices"]]),
+    [["large pasta shells or penne",350,"g","Pantry"],["ricotta",250,"g","Fridge"],["spinach",200,"g","Fruit & Veg"],["passata",500,"ml","Pantry"],["mozzarella",1,"ball","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["nutmeg",1,"pinch","Herbs & Spices"]],
+    ["Cook the pasta 2 minutes short of the pack time.",
+     "Wilt the spinach, squeeze it dry and chop very finely. Mix with the ricotta, garlic and nutmeg.",
+     "Toss the pasta with the passata in a baking dish, dot with the ricotta mix and tear the mozzarella over.",
+     "Bake at 190°C for 20–25 minutes. Portion the kids' early to cool."]),
 
-  R("katsu", "Crispy Tofu Katsu Curry", "🍛", "Japanese", 40, ["weekend"], 2,
+  R("katsu", "Crispy Tofu Katsu Curry", "🍛", "Japanese", 40, ["weekend"], 2, "v",
     "Crispy coating + sweet mild sauce = surprisingly kid-friendly. Serve sauce on the side for the 4-year-old to dip. Cut the katsu into little fingers for the 2-year-old.",
-    [["firm tofu",400,"g","Fridge"],["panko breadcrumbs",120,"g","Pantry"],["katsu or mild curry sauce",1,"jar","Pantry"],["rice",300,"g","Pantry"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["eggs",2,"","Fridge"]]),
+    [["firm tofu",400,"g","Fridge"],["panko breadcrumbs",120,"g","Pantry"],["katsu or mild curry sauce",1,"jar","Pantry"],["rice",300,"g","Pantry"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["plain flour",3,"tbsp","Pantry"],["eggs",2,"","Fridge"]],
+    ["Press the tofu dry and slice into thick slabs. Dust in flour, dip in beaten egg, coat in panko.",
+     "Fry in a little oil for 3–4 minutes each side until deeply golden.",
+     "Warm the katsu sauce and cook the rice.",
+     "Slice the katsu into fingers, with carrot and cucumber ribbons on the side. Sauce for dipping."]),
 
-  R("fritters", "Pea & Sweetcorn Fritters", "🥞", "British", 25, ["quick"], 2,
+  R("fritters", "Pea & Sweetcorn Fritters", "🥞", "British", 25, ["quick"], 2, "v",
     "Fritters are the great smuggler of vegetables. Make them small and flat so they cook soft in the middle. Serve with yogurt for dipping and fruit on the side.",
-    [["frozen peas",200,"g","Frozen"],["sweetcorn",1,"tin","Pantry"],["self-raising flour",150,"g","Pantry"],["eggs",2,"","Fridge"],["milk",100,"ml","Fridge"],["spring onions",3,"","Fruit & Veg"],["natural yogurt",150,"ml","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"]]),
+    [["frozen peas",200,"g","Frozen"],["sweetcorn",1,"tin","Pantry"],["self-raising flour",150,"g","Pantry"],["eggs",2,"","Fridge"],["milk",100,"ml","Fridge"],["spring onions",3,"","Fruit & Veg"],["natural yogurt",150,"ml","Fridge"],["cherry tomatoes",150,"g","Fruit & Veg"]],
+    ["Whisk the flour, eggs and milk into a thick batter.",
+     "Stir in the peas, sweetcorn and chopped spring onions.",
+     "Fry small, flat spoonfuls in a little oil for 2–3 minutes each side until golden and cooked through.",
+     "Drain on kitchen paper. Serve with yogurt for dipping and halved tomatoes."]),
 
-  R("fajitas", "Halloumi Fajita Night", "🫓", "Mexican", 25, ["quick","fun"], 3,
+  R("fajitas", "Halloumi Fajita Night", "🫓", "Mexican", 25, ["quick","fun"], 3, "v",
     "Halloumi is salty, so keep the kids' portions modest and add extra soft peppers. Serve theirs as a 'plate of bits' with tortilla strips rather than a rolled wrap.",
-    [["halloumi",2,"blocks","Fridge"],["flour tortillas",8,"","Bakery"],["red pepper",2,"","Fruit & Veg"],["yellow pepper",1,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["lime",1,"","Fruit & Veg"]]),
+    [["halloumi",2,"blocks","Fridge"],["flour tortillas",8,"","Bakery"],["red pepper",2,"","Fruit & Veg"],["yellow pepper",1,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["lime",1,"","Fruit & Veg"]],
+    ["Fry the pepper strips and sliced onion until soft and starting to char.",
+     "Add the sliced halloumi and seasoning and fry until golden.",
+     "Warm the tortillas.",
+     "Wraps for the grown-ups; a plate of bits with tortilla strips for the kids."]),
 
-  R("squashpasta", "Butternut & Sage Pasta", "🎃", "Italian", 35, [], 2,
+  R("squashpasta", "Butternut & Sage Pasta", "🎃", "Italian", 35, [], 2, "v",
     "Sweet roasted squash blitzed into a golden sauce — looks like mac & cheese, sneaks in a whole vegetable. Use fun pasta shapes; shape novelty genuinely helps at 4.",
-    [["pasta shapes",350,"g","Pantry"],["butternut squash",1,"","Fruit & Veg"],["crème fraîche",150,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["parmesan-style cheese",50,"g","Fridge"],["dried sage",1,"tsp","Herbs & Spices"],["olive oil",2,"tbsp","Pantry"]]),
+    [["pasta shapes",350,"g","Pantry"],["butternut squash",1,"","Fruit & Veg"],["crème fraîche",150,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["parmesan-style cheese",50,"g","Fridge"],["dried sage",1,"tsp","Herbs & Spices"],["olive oil",2,"tbsp","Pantry"]],
+    ["Roast the squash chunks and whole garlic cloves in oil with the sage at 200°C for 25 minutes.",
+     "Cook the pasta, saving a cup of cooking water.",
+     "Blitz the squash and squeezed-out garlic with the crème fraîche and enough pasta water to make a silky sauce.",
+     "Toss with the pasta and finish with parmesan."]),
 
-  R("pizzanight", "Make-Your-Own Pizza Night", "🍕", "Italian", 45, ["weekend","fun"], 3,
+  R("pizzanight", "Make-Your-Own Pizza Night", "🍕", "Italian", 45, ["weekend","fun"], 3, "v",
     "The Friday classic. Ready-made dough keeps it easy; kids top their own. Pre-portion toppings in little bowls or the 2-year-old will eat all the cheese before assembly.",
-    [["pizza dough or bases",2,"","Bakery"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mushrooms",100,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olives",50,"g","Pantry"]]),
+    [["pizza dough or bases",2,"","Bakery"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mushrooms",100,"g","Fruit & Veg"],["fresh basil",1,"bunch","Herbs & Spices"],["olives",50,"g","Pantry"]],
+    ["Heat the oven as hot as it goes, with a baking tray inside.",
+     "Roll or stretch the dough and spread with passata.",
+     "Everyone tops their own half — toppings pre-portioned in little bowls.",
+     "Slide onto the hot tray and bake 10–12 minutes until bubbling. Cool the kids' slices before serving."]),
 
-  R("chowder", "Sweetcorn Chowder & Crusty Bread", "🌽", "American", 35, ["batch"], 3,
+  R("chowder", "Sweetcorn Chowder & Crusty Bread", "🌽", "American", 35, ["batch"], 3, "v",
     "Sweet, creamy and gentle. Blitz half the soup so it's thick enough for self-feeding with a spoon. Bread for dunking is non-negotiable.",
-    [["sweetcorn",2,"tins","Pantry"],["potatoes",500,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["milk",400,"ml","Fridge"],["low-salt veg stock cube",1,"","Pantry"],["spring onions",3,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",80,"g","Fridge"]]),
+    [["sweetcorn",2,"tins","Pantry"],["potatoes",500,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["milk",400,"ml","Fridge"],["low-salt veg stock cube",1,"","Pantry"],["spring onions",3,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",80,"g","Fridge"]],
+    ["Soften the onion, then add the diced potatoes and stock. Simmer 12 minutes.",
+     "Add the sweetcorn and milk and simmer 5 more.",
+     "Blitz half the soup so it's thick and spoonable, then stir back in.",
+     "Top with cheese and spring onions. Bread for dunking."]),
 
-  R("paella", "Veggie Paella-Style Rice", "🥘", "Spanish", 40, ["weekend"], 2,
+  R("paella", "Veggie Paella-Style Rice", "🥘", "Spanish", 40, ["weekend"], 2, "v",
     "One big pan on the table, everyone digs in — good for modelling adventurous eating. Peas and beans are the toddler entry point; don't stress if the peppers come back.",
-    [["paella or risotto rice",320,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["green beans",150,"g","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["smoked paprika",1,"tsp","Herbs & Spices"],["lemon",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"]]),
+    [["paella or risotto rice",320,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["green beans",150,"g","Fruit & Veg"],["garlic cloves",3,"","Fruit & Veg"],["smoked paprika",1,"tsp","Herbs & Spices"],["lemon",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"]],
+    ["Soften the pepper strips and garlic in a wide pan, then stir in the paprika.",
+     "Add the rice, tomatoes and 800ml stock. Simmer 18 minutes without stirring too much.",
+     "Scatter the peas and green beans over for the last 5 minutes.",
+     "Bring the whole pan to the table. Lemon wedges for the grown-ups."]),
 
-  R("eggcurry", "Coconut Egg & Spinach Curry", "🥚", "Indian", 30, ["quick"], 2,
+  R("eggcurry", "Coconut Egg & Spinach Curry", "🥚", "Indian", 30, ["quick"], 2, "v",
     "Boiled eggs in a mild coconut sauce — protein-packed and gentle. Quarter the eggs for both kids. If the sauce is a no, eggs + rice + peas still makes a solid dinner.",
-    [["eggs",8,"","Fridge"],["coconut milk",1,"tin","Pantry"],["spinach",150,"g","Fruit & Veg"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["mild curry powder",2,"tsp","Herbs & Spices"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"]]),
+    [["eggs",8,"","Fridge"],["coconut milk",1,"tin","Pantry"],["spinach",150,"g","Fruit & Veg"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["mild curry powder",2,"tsp","Herbs & Spices"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"]],
+    ["Boil the eggs for 8 minutes, then peel and halve.",
+     "Soften the onion, stir in the curry powder and purée, then add the coconut milk. Simmer 10 minutes.",
+     "Wilt in the spinach and add the eggs and peas to warm through.",
+     "Serve over rice, with the kids' eggs quartered."]),
 
-  R("mascarpone", "Tomato & Mascarpone Pasta", "🍝", "Italian", 20, ["quick"], 3,
+  R("mascarpone", "Tomato & Mascarpone Pasta", "🍝", "Italian", 20, ["quick"], 3, "v",
     "The gentlest pasta sauce there is — creamy, sweet, zero heat. Stir spinach in finely chopped so it can't be picked out. A reliable 'everyone eats' night.",
-    [["pasta shapes",350,"g","Pantry"],["passata",400,"ml","Pantry"],["mascarpone",150,"g","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["baby spinach",80,"g","Fruit & Veg"],["parmesan-style cheese",40,"g","Fridge"],["fresh basil",1,"bunch","Herbs & Spices"]]),
+    [["pasta shapes",350,"g","Pantry"],["passata",400,"ml","Pantry"],["mascarpone",150,"g","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["baby spinach",80,"g","Fruit & Veg"],["parmesan-style cheese",40,"g","Fridge"],["fresh basil",1,"bunch","Herbs & Spices"]],
+    ["Cook the pasta following the pack.",
+     "Warm the garlic in a little oil, add the passata and simmer 5 minutes.",
+     "Stir in the mascarpone and finely chopped spinach until creamy and wilted.",
+     "Toss with the pasta; basil and parmesan on top."]),
 
-  R("toadhole", "Veggie Toad-in-the-Hole", "🍽️", "British", 45, ["weekend"], 2,
+  R("toadhole", "Veggie Toad-in-the-Hole", "🍽️", "British", 45, ["weekend"], 2, "v",
     "Puffy Yorkshire batter is a guaranteed hit. Cut sausages lengthways then into half-moons for the 2-year-old — never coin-shaped slices. Serve with peas and a little gravy for dunking.",
-    [["veggie sausages",8,"","Frozen"],["plain flour",140,"g","Pantry"],["eggs",3,"","Fridge"],["milk",200,"ml","Fridge"],["frozen peas",200,"g","Frozen"],["veggie gravy granules",2,"tbsp","Pantry"],["broccoli",1,"head","Fruit & Veg"]]),
+    [["veggie sausages",8,"","Frozen"],["plain flour",140,"g","Pantry"],["eggs",3,"","Fridge"],["milk",200,"ml","Fridge"],["frozen peas",200,"g","Frozen"],["veggie gravy granules",2,"tbsp","Pantry"],["broccoli",1,"head","Fruit & Veg"]],
+    ["Whisk the flour, eggs and milk into a smooth batter and let it rest.",
+     "Brown the sausages in an oven dish with a good glug of oil, then get the dish smoking hot at 220°C.",
+     "Pour in the batter around the sausages and bake 25–30 minutes without opening the door.",
+     "Steam the broccoli, cook the peas, make the gravy. Cut the kids' sausages into half-moons."]),
 
-  R("orzobroc", "One-Pot Broccoli Cheese Orzo", "🥦", "American", 25, ["quick"], 3,
+  R("orzobroc", "One-Pot Broccoli Cheese Orzo", "🥦", "American", 25, ["quick"], 3, "v",
     "Chop the broccoli tiny so it melts into the cheesy sauce — 'green rice' goes down easier than 'trees' on a bad day. One pot, one spoon per kid, minimal washing up.",
-    [["orzo",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["grated cheddar",150,"g","Fridge"],["milk",200,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["frozen peas",100,"g","Frozen"]]),
+    [["orzo",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["grated cheddar",150,"g","Fridge"],["milk",200,"ml","Fridge"],["garlic cloves",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["frozen peas",100,"g","Frozen"]],
+    ["Chop the broccoli very small and soften with the garlic in a little butter for 2 minutes.",
+     "Add the orzo and 700ml stock. Simmer 10–12 minutes, stirring so it doesn't stick.",
+     "Stir in the milk, cheddar and peas until creamy.",
+     "Serve in bowls — it thickens as it cools."]),
 
-  R("tortilla", "Spanish Potato Tortilla & Salad", "🥚", "Spanish", 35, [], 2,
+  R("tortilla", "Spanish Potato Tortilla & Salad", "🥚", "Spanish", 35, [], 2, "v",
     "Soft egg and potato is perfect self-feeding food. Serve the 2-year-old's wedge well cooled and cut into strips. Leftover slices make tomorrow's lunchbox.",
-    [["eggs",8,"","Fridge"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["olive oil",3,"tbsp","Pantry"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"]]),
+    [["eggs",8,"","Fridge"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["olive oil",3,"tbsp","Pantry"],["cherry tomatoes",200,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"],["crusty bread",1,"loaf","Bakery"]],
+    ["Slowly fry the thinly sliced potatoes and onion in the oil until tender, about 15 minutes.",
+     "Mix with the beaten eggs, then pour back into the pan on a low heat.",
+     "Cook 8–10 minutes until nearly set, then flip with a plate and cook 3 more.",
+     "Cool, slice into wedges, and serve with salad and bread."]),
 
-  R("stroganoff", "Creamy Mushroom Stroganoff", "🍄", "European", 25, ["quick"], 2,
+  R("stroganoff", "Creamy Mushroom Stroganoff", "🍄", "European", 25, ["quick"], 2, "v",
     "Mushrooms divide small people — chop them very fine or blitz half into the sauce so the flavour stays and the 'bits' vanish. Soft rice + creamy sauce is great toddler texture.",
-    [["mushrooms",500,"g","Fruit & Veg"],["crème fraîche",200,"ml","Fridge"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"],["low-salt veg stock cube",1,"","Pantry"]]),
+    [["mushrooms",500,"g","Fruit & Veg"],["crème fraîche",200,"ml","Fridge"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["mild smoked paprika",1,"tsp","Herbs & Spices"],["low-salt veg stock cube",1,"","Pantry"]],
+    ["Get the rice on. Soften the onion and garlic for 5 minutes.",
+     "Turn up the heat and fry the sliced mushrooms until golden.",
+     "Add the paprika, a splash of stock and the crème fraîche. Bubble 3 minutes.",
+     "Chop or blitz the kids' portions finer if mushroom 'bits' are controversial."]),
 
-  R("enchiladas", "Bean & Cheese Enchiladas", "🌯", "Mexican", 45, ["weekend","batch"], 2,
+  R("enchiladas", "Bean & Cheese Enchiladas", "🌯", "Mexican", 45, ["weekend","batch"], 2, "v",
     "Keep the sauce mild and the cheese generous. Slice the kids' enchiladas into pinwheel rounds and let them cool — the middles hold heat like an oven.",
-    [["flour tortillas",8,"","Bakery"],["black beans",2,"tins","Pantry"],["passata",500,"ml","Pantry"],["grated cheddar",200,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]]),
+    [["flour tortillas",8,"","Bakery"],["black beans",2,"tins","Pantry"],["passata",500,"ml","Pantry"],["grated cheddar",200,"g","Fridge"],["sweetcorn",1,"small tin","Pantry"],["red pepper",1,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"]],
+    ["Mash the drained beans with the seasoning, sweetcorn and finely diced pepper.",
+     "Fill and roll the tortillas, and lay them seam-down in a baking dish.",
+     "Pour the passata over and cover generously with cheese.",
+     "Bake at 190°C for 20–25 minutes. Slice the kids' into pinwheels and cool."]),
 
-  R("gyoza", "Veggie Gyoza & Sticky Rice Night", "🥟", "Japanese", 20, ["quick","fun"], 3,
+  R("gyoza", "Veggie Gyoza & Sticky Rice Night", "🥟", "Japanese", 20, ["quick","fun"], 3, "v",
     "Dumplings are basically designed for small hands. Halve them for the 2-year-old so the filling cools. Give everyone a little dish of very diluted soy for dipping — dipping is half the fun.",
-    [["frozen veggie gyoza",20,"","Frozen"],["rice",300,"g","Pantry"],["frozen edamame",150,"g","Frozen"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]]),
+    [["frozen veggie gyoza",20,"","Frozen"],["rice",300,"g","Pantry"],["frozen edamame",150,"g","Frozen"],["carrots",2,"","Fruit & Veg"],["cucumber",0.5,"","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]],
+    ["Get the rice on.",
+     "Fry the gyoza flat-side down for 2–3 minutes, then add a splash of water, lid on, and steam 6 minutes.",
+     "Boil the edamame for 3 minutes; ribbon the carrot and cucumber.",
+     "Serve with little dishes of diluted soy for dipping. Halve the toddler's gyoza."]),
 
-  R("caulicheese", "Cauliflower Cheese & Potato Wedges", "🥬", "British", 45, ["weekend"], 2,
+  R("caulicheese", "Cauliflower Cheese & Potato Wedges", "🥬", "British", 45, ["weekend"], 2, "v",
     "Proper comfort food. Mash the cauliflower into the sauce for the 2-year-old. If the 4-year-old objects to cauliflower on principle, a cheese-sauce-covered wedge is a fine opening offer.",
-    [["cauliflower",1,"head","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",400,"ml","Fridge"],["plain flour",3,"tbsp","Pantry"],["butter",40,"g","Fridge"],["potatoes",800,"g","Fruit & Veg"],["frozen peas",150,"g","Frozen"]]),
+    [["cauliflower",1,"head","Fruit & Veg"],["grated cheddar",180,"g","Fridge"],["milk",400,"ml","Fridge"],["plain flour",3,"tbsp","Pantry"],["butter",40,"g","Fridge"],["potatoes",800,"g","Fruit & Veg"],["frozen peas",150,"g","Frozen"]],
+    ["Cut the potatoes into wedges, toss in oil and roast at 200°C for 30–35 minutes.",
+     "Boil the cauliflower florets for 6 minutes and drain well.",
+     "Melt the butter, stir in the flour, whisk in the milk, then most of the cheese.",
+     "Pour over the cauliflower, top with the last cheese and grill 10 minutes. Peas on the side."]),
 
-  R("souppinwheels", "Tomato Soup & Cheesy Pinwheels", "🍅", "British", 30, ["fun"], 3,
+  R("souppinwheels", "Tomato Soup & Cheesy Pinwheels", "🍅", "British", 30, ["fun"], 3, "v",
     "Make the puff-pastry pinwheels together — rolling and sprinkling is a great 4-year-old job. Serve the soup lukewarm in small cups so the 2-year-old can drink it like hot chocolate.",
-    [["puff pastry sheet",1,"","Fridge"],["grated cheddar",120,"g","Fridge"],["green pesto",2,"tbsp","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",100,"ml","Fridge"]]),
+    [["puff pastry sheet",1,"","Fridge"],["grated cheddar",120,"g","Fridge"],["green pesto",2,"tbsp","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",100,"ml","Fridge"]],
+    ["Spread the pastry with pesto, scatter with cheese, roll up, slice into pinwheels and bake at 200°C for 15 minutes.",
+     "Meanwhile soften the onion and chopped carrots, add the tomatoes and 500ml stock, and simmer 15 minutes.",
+     "Blitz completely smooth and stir in the milk.",
+     "Lukewarm cups for the kids, pinwheels for dunking."]),
 
-  R("sunshinebowl", "Sunshine Couscous & Halloumi Bowl", "🌞", "Greek", 20, ["quick"], 2,
+  R("sunshinebowl", "Sunshine Couscous & Halloumi Bowl", "🌞", "Greek", 20, ["quick"], 2, "v",
     "Couscous is brilliant toddler food — tiny, soft, scoopable. Halloumi is salty so keep the kids' cubes small and few. Hummus in the middle of the plate turns everything into a dip.",
-    [["couscous",250,"g","Pantry"],["halloumi",1,"block","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["hummus",200,"g","Fridge"],["lemon",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"]]),
+    [["couscous",250,"g","Pantry"],["halloumi",1,"block","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["hummus",200,"g","Fridge"],["lemon",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"]],
+    ["Pour boiling water over the couscous, cover, and leave 5 minutes. Fluff with a fork, lemon and oil through it.",
+     "Fry the sliced halloumi until golden on both sides.",
+     "Chop the cucumber and halve the tomatoes.",
+     "Build bowls with a dollop of hummus in the middle for dipping."]),
 
-  R("chilli", "Mild Veggie Chilli & Fluffy Rice", "🌶️", "Mexican", 35, ["batch","freezer"], 2,
+  R("chilli", "Mild Veggie Chilli & Fluffy Rice", "🌶️", "Mexican", 35, ["batch","freezer"], 2, "v",
     "Keep chilli powder at a whisper and add a pinch of cinnamon for sweetness. A spoon of soured cream instantly rescues any 'too spicy!' verdicts. Freezes brilliantly.",
-    [["kidney beans",2,"tins","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["red pepper",1,"","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["soured cream",150,"ml","Fridge"],["grated cheddar",80,"g","Fridge"]]),
+    [["kidney beans",2,"tins","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["red pepper",1,"","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["soured cream",150,"ml","Fridge"],["grated cheddar",80,"g","Fridge"]],
+    ["Soften the onion and diced pepper, then stir in the seasoning (and a pinch of cinnamon if you have it).",
+     "Add the beans, tomatoes and sweetcorn. Simmer 20 minutes.",
+     "Cook the rice.",
+     "Serve with soured cream and cheese on top — the cream fixes any 'too spicy' complaints."]),
 
-  R("gnocchibake", "Cheesy Gnocchi & Tomato Traybake", "🧀", "Italian", 30, [], 3,
+  R("gnocchibake", "Cheesy Gnocchi & Tomato Traybake", "🧀", "Italian", 30, [], 3, "v",
     "Everything in one tray, into the oven, done. Quarter the gnocchi for the 2-year-old and watch the melted mozzarella pockets — they stay volcanic long after the rest has cooled.",
-    [["gnocchi",800,"g","Fridge"],["cherry tomatoes",300,"g","Fruit & Veg"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["red pepper",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried oregano",1,"tsp","Herbs & Spices"]]),
+    [["gnocchi",800,"g","Fridge"],["cherry tomatoes",300,"g","Fruit & Veg"],["passata",300,"ml","Pantry"],["mozzarella",2,"balls","Fridge"],["red pepper",1,"","Fruit & Veg"],["olive oil",2,"tbsp","Pantry"],["dried oregano",1,"tsp","Herbs & Spices"]],
+    ["Heat the oven to 220°C. Toss the gnocchi, tomatoes, pepper chunks, passata, oil and oregano straight in a roasting tray.",
+     "Roast 20 minutes, stirring once.",
+     "Tear the mozzarella over and roast 5–8 more minutes until melted.",
+     "Cool the kids' portions well — the cheese pockets stay hot."]),
 
-  R("sweetsour", "Sweet & Sour Veg with Rice", "🍍", "Chinese", 30, [], 2,
+  R("sweetsour", "Sweet & Sour Veg with Rice", "🍍", "Chinese", 30, [], 2, "v",
     "Pineapple is the trojan horse here — most kids dive for it first and the veg follows. Cut the pineapple chunks and tofu small for the 2-year-old.",
-    [["rice",300,"g","Pantry"],["pineapple chunks",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["baby corn",100,"g","Fruit & Veg"],["firm tofu",300,"g","Fridge"],["tomato ketchup",3,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["rice vinegar",1,"tbsp","Pantry"]]),
+    [["rice",300,"g","Pantry"],["pineapple chunks",1,"tin","Pantry"],["red pepper",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["baby corn",100,"g","Fruit & Veg"],["firm tofu",300,"g","Fridge"],["tomato ketchup",3,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["rice vinegar",1,"tbsp","Pantry"]],
+    ["Get the rice on and fry the cubed tofu until golden.",
+     "Add the pepper chunks, sliced carrots and baby corn and stir-fry 4 minutes.",
+     "Mix the ketchup, soy, vinegar and the juice from the pineapple tin; pour in and bubble until glossy.",
+     "Add the pineapple chunks to warm through and serve over rice."]),
 
-  R("carbonara", "Creamy Pea 'Carbonara'", "🍝", "Italian", 20, ["quick"], 3,
+  R("carbonara", "Creamy Pea 'Carbonara'", "🍝", "Italian", 20, ["quick"], 3, "v",
     "A silky egg-and-cream sauce with sweet peas — no bacon needed. Use short pasta shapes for easier little forks, and toss the sauce off the heat so it stays glossy not scrambled.",
-    [["penne or fusilli",350,"g","Pantry"],["eggs",3,"","Fridge"],["crème fraîche",150,"ml","Fridge"],["parmesan-style cheese",60,"g","Fridge"],["frozen peas",200,"g","Frozen"],["garlic cloves",2,"","Fruit & Veg"],["black pepper",1,"pinch","Herbs & Spices"]]),
+    [["penne or fusilli",350,"g","Pantry"],["eggs",3,"","Fridge"],["crème fraîche",150,"ml","Fridge"],["parmesan-style cheese",60,"g","Fridge"],["frozen peas",200,"g","Frozen"],["garlic cloves",2,"","Fruit & Veg"],["black pepper",1,"pinch","Herbs & Spices"]],
+    ["Cook the pasta, adding the peas for the last 2 minutes. Save a cup of pasta water.",
+     "Whisk the eggs, crème fraîche and most of the parmesan together.",
+     "Drain the pasta, take the pan off the heat, and toss with the egg mix and a splash of pasta water until silky.",
+     "Black pepper for the grown-ups; extra parmesan for everyone."]),
 
-  R("tagine", "Gentle Apricot & Chickpea Tagine", "🍑", "Moroccan", 35, ["batch"], 2,
+  R("tagine", "Gentle Apricot & Chickpea Tagine", "🍑", "Moroccan", 35, ["batch"], 2, "v",
     "Sweet apricots make this the friendliest 'grown-up' dinner. Chop them small (dried fruit is chewy for a 2-year-old) and serve over couscous, which forgives even the messiest spoon technique.",
-    [["chickpeas",2,"tins","Pantry"],["dried apricots",100,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["couscous",250,"g","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["ground cinnamon",0.5,"tsp","Herbs & Spices"],["ground cumin",1,"tsp","Herbs & Spices"],["ground almonds",2,"tbsp","Pantry"]]),
+    [["chickpeas",2,"tins","Pantry"],["dried apricots",100,"g","Pantry"],["chopped tomatoes",1,"tin","Pantry"],["couscous",250,"g","Pantry"],["onion",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["ground cinnamon",0.5,"tsp","Herbs & Spices"],["ground cumin",1,"tsp","Herbs & Spices"],["ground almonds",2,"tbsp","Pantry"]],
+    ["Soften the onion and diced carrots, then stir in the cinnamon and cumin for 1 minute.",
+     "Add the chickpeas, tomatoes, chopped apricots and a splash of water. Simmer 20 minutes.",
+     "Make the couscous: boiling water over, cover, 5 minutes, fluff.",
+     "Stir the ground almonds into the tagine to thicken, and serve."]),
 
-  R("toastie", "Bean & Cheese Toastie Night", "🥪", "British", 15, ["quick","fun"], 3,
+  R("toastie", "Bean & Cheese Toastie Night", "🥪", "British", 15, ["quick","fun"], 3, "v",
     "The official emergency dinner — fifteen minutes, everyone happy. Cut toasties into soldiers for dipping, mind the molten bean filling for the little ones, and round it out with veg sticks and fruit.",
-    [["bread",1,"loaf","Bakery"],["baked beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",30,"g","Fridge"],["cucumber",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["apples",2,"","Fruit & Veg"]]),
+    [["bread",1,"loaf","Bakery"],["baked beans",1,"tin","Pantry"],["grated cheddar",150,"g","Fridge"],["butter",30,"g","Fridge"],["cucumber",1,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["apples",2,"","Fruit & Veg"]],
+    ["Butter the bread on the outside faces.",
+     "Fill with cheese and well-drained beans.",
+     "Toast in a hot pan or toastie press until golden and melted.",
+     "Cut into soldiers, cool the middles, and serve with veg sticks and apple slices."]),
 
-  R("padthai", "Mild Veggie Pad Thai", "🍜", "Thai", 25, ["quick"], 2,
+  R("padthai", "Mild Veggie Pad Thai", "🍜", "Thai", 25, ["quick"], 2, "v",
     "Skip the chilli and lime on the kids' plates and snip their noodles short with scissors. Crushed peanuts are grown-ups only — whole and broken nuts aren't safe under 5.",
-    [["flat rice noodles",300,"g","Pantry"],["eggs",3,"","Fridge"],["beansprouts",150,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["smooth peanut butter",2,"tbsp","Pantry"],["low-salt soy sauce",3,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]]),
+    [["flat rice noodles",300,"g","Pantry"],["eggs",3,"","Fridge"],["beansprouts",150,"g","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["spring onions",4,"","Fruit & Veg"],["smooth peanut butter",2,"tbsp","Pantry"],["low-salt soy sauce",3,"tbsp","Pantry"],["lime",1,"","Fruit & Veg"]],
+    ["Soak or cook the noodles following the pack.",
+     "Scramble the eggs in a hot wok and set aside.",
+     "Stir-fry the carrot ribbons 2 minutes, then add the noodles and a sauce of peanut butter, soy and a splash of water.",
+     "Toss in the beansprouts, spring onions and eggs. Lime and chilli for grown-ups only."]),
 
-  R("leekpotato", "Leek & Potato Soup with Cheese Toasts", "🥣", "British", 30, ["batch","freezer"], 2,
+  R("leekpotato", "Leek & Potato Soup with Cheese Toasts", "🥣", "British", 30, ["batch","freezer"], 2, "v",
     "Blitz it completely smooth — no surprise lumps, no complaints. Serve it thick enough to cling to a spoon, with cheese-on-toast dippers doing the heavy lifting.",
-    [["leeks",3,"","Fruit & Veg"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",150,"ml","Fridge"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",120,"g","Fridge"],["butter",30,"g","Fridge"]]),
+    [["leeks",3,"","Fruit & Veg"],["potatoes",600,"g","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["low-salt veg stock cube",1,"","Pantry"],["milk",150,"ml","Fridge"],["crusty bread",1,"loaf","Bakery"],["grated cheddar",120,"g","Fridge"],["butter",30,"g","Fridge"]],
+    ["Soften the sliced leeks and onion in the butter for 8 minutes without browning.",
+     "Add the diced potatoes and 800ml stock. Simmer 15 minutes until soft.",
+     "Blitz completely smooth and stir in the milk.",
+     "Grill cheese on toast, cut into dippers, and serve."]),
 
-  R("bbqtofu", "Sticky BBQ Tofu Wraps", "🌯", "American", 25, ["quick"], 2,
+  R("bbqtofu", "Sticky BBQ Tofu Wraps", "🌯", "American", 25, ["quick"], 2, "v",
     "Sticky-sweet BBQ glaze does for tofu what it does for everything. Serve the 2-year-old's as a plate of bits — tofu cubes, tortilla strips, corn — rather than a wrap that unravels.",
-    [["firm tofu",400,"g","Fridge"],["BBQ sauce",4,"tbsp","Pantry"],["flour tortillas",8,"","Bakery"],["sweetcorn",1,"small tin","Pantry"],["little gem lettuce",1,"","Fruit & Veg"],["avocado",1,"","Fruit & Veg"],["grated cheddar",80,"g","Fridge"]]),
+    [["firm tofu",400,"g","Fridge"],["BBQ sauce",4,"tbsp","Pantry"],["flour tortillas",8,"","Bakery"],["sweetcorn",1,"small tin","Pantry"],["little gem lettuce",1,"","Fruit & Veg"],["avocado",1,"","Fruit & Veg"],["grated cheddar",80,"g","Fridge"]],
+    ["Pat the tofu dry, cube, and fry until crisp on all sides.",
+     "Add the BBQ sauce with a splash of water and toss until sticky.",
+     "Warm the tortillas and prep the corn, lettuce, avocado and cheese.",
+     "Wraps for the grown-ups; a plate of bits for the toddler."]),
 
-  R("sushibowl", "Build-Your-Own Sushi Bowls", "🍣", "Japanese", 30, ["fun"], 2,
+  R("sushibowl", "Build-Your-Own Sushi Bowls", "🍣", "Japanese", 30, ["fun"], 2, "v",
     "Deconstructed sushi: sticky rice bowls with toppings to arrange. Snip nori into confetti, ribbon the cucumber with a peeler, and let the kids build. Weirdly effective with fussy eaters.",
-    [["sushi rice",300,"g","Pantry"],["cucumber",1,"","Fruit & Veg"],["avocado",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"],["nori sheets",2,"","Pantry"],["rice vinegar",2,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]]),
+    [["sushi rice",300,"g","Pantry"],["cucumber",1,"","Fruit & Veg"],["avocado",2,"","Fruit & Veg"],["carrots",2,"","Fruit & Veg"],["frozen edamame",150,"g","Frozen"],["nori sheets",2,"","Pantry"],["rice vinegar",2,"tbsp","Pantry"],["low-salt soy sauce",2,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"]],
+    ["Cook the sushi rice following the pack and season with the rice vinegar.",
+     "Boil the edamame for 3 minutes.",
+     "Prep the toppings: cucumber ribbons, avocado slices, carrot matchsticks, nori confetti (kitchen scissors).",
+     "Everyone builds their own bowl. Diluted soy for dipping."]),
+
+  /* ============ MEAT ============ */
+  R("beefbol", "Proper Beef & Hidden-Veg Bolognese", "🍝", "Italian", 40, ["batch","freezer"], 3, "m",
+    "Grate the carrot and celery so fine they disappear into the mince. Blitz a portion smooth for the 2-year-old and cut spaghetti short. Doubles and freezes perfectly.",
+    [["beef mince",500,"g","Meat & Fish"],["spaghetti",350,"g","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["carrots",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["dried oregano",1,"tsp","Herbs & Spices"],["parmesan-style cheese",40,"g","Fridge"]],
+    ["Brown the mince in a hot pan, breaking it up, then set aside.",
+     "Soften the grated onion, carrot and celery for 8 minutes; add the garlic and oregano for 1 more.",
+     "Return the mince with the tomatoes and half a tin of water. Simmer at least 20 minutes (longer is better).",
+     "Cook the spaghetti and serve with parmesan. Blitz the toddler's sauce smooth if needed."]),
+
+  R("chicknuggets", "Crispy Homemade Chicken Nuggets", "🍗", "American", 30, ["fun"], 3, "m",
+    "Real chicken, crispy crumb, zero mystery. Make mini nuggets for the 2-year-old and check every piece is cooked through — no pink in the middle. Dips make the vegetables happen.",
+    [["chicken breasts",3,"","Meat & Fish"],["breadcrumbs",120,"g","Pantry"],["plain flour",3,"tbsp","Pantry"],["eggs",2,"","Fridge"],["potato wedges",600,"g","Frozen"],["frozen peas",150,"g","Frozen"],["corn on the cob",2,"","Fruit & Veg"],["tomato ketchup",4,"tbsp","Pantry"]],
+    ["Get the wedges in the oven at 200°C following the pack.",
+     "Cut the chicken into nugget-sized chunks (a few minis for the toddler). Dust in flour, dip in beaten egg, coat in breadcrumbs.",
+     "Bake on an oiled tray for 15–18 minutes, turning once, until golden and cooked through with no pink inside.",
+     "Boil the corn and peas. Ketchup and dips on the table."]),
+
+  R("chickfajitas", "Sizzling Chicken Fajitas", "🌮", "Mexican", 25, ["quick","fun"], 3, "m",
+    "Cook the chicken strips right through, then chop the kids' into small pieces. Serve theirs as a plate of bits with tortilla strips; the sizzling pan is dinner theatre for the 4-year-old.",
+    [["chicken breasts",3,"","Meat & Fish"],["flour tortillas",8,"","Bakery"],["red pepper",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["mild fajita seasoning",1,"tbsp","Herbs & Spices"],["soured cream",150,"ml","Fridge"],["grated cheddar",80,"g","Fridge"],["lime",1,"","Fruit & Veg"]],
+    ["Slice the chicken into strips and toss with the seasoning.",
+     "Fry in a hot pan for 6–8 minutes until cooked through with no pink; set aside.",
+     "Fry the pepper strips and sliced onion until soft and charred, then return the chicken.",
+     "Warm the tortillas. Wraps for grown-ups, plate-of-bits for the kids."]),
+
+  R("roastchicken", "Sunday Roast Chicken & All the Bits", "🍗", "British", 90, ["weekend"], 3, "m",
+    "The weekend anchor — and tomorrow's leftovers. Give the kids soft breast meat shredded small, no skin or bones. Save the carcass for stock and Monday's dinner sorts itself out.",
+    [["whole chicken",1,"","Meat & Fish"],["potatoes",1,"kg","Fruit & Veg"],["carrots",4,"","Fruit & Veg"],["broccoli",1,"head","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["gravy granules",2,"tbsp","Pantry"],["olive oil",2,"tbsp","Pantry"]],
+    ["Roast the chicken at 200°C for about 20 minutes per 500g plus 20 (roughly 75–90 minutes for a 1.5kg bird), until the juices run clear.",
+     "Parboil the potatoes 10 minutes, shake to rough up, and roast in hot oil for the last 45 minutes.",
+     "Steam the carrots and broccoli; cook the peas; make the gravy with the roasting juices.",
+     "Rest the chicken 15 minutes before carving. Shred the kids' meat small — no skin or bones."]),
+
+  R("cottagepie", "Beef & Veg Cottage Pie", "🥧", "British", 55, ["weekend","batch","freezer"], 3, "m",
+    "Soft mince under buttery mash — classic toddler-approved comfort. Grate the carrot in fine so it vanishes. Make two and freeze one for a night when nobody has the energy.",
+    [["beef mince",500,"g","Meat & Fish"],["potatoes",1,"kg","Fruit & Veg"],["carrots",3,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["frozen peas",150,"g","Frozen"],["tomato purée",2,"tbsp","Pantry"],["gravy granules",2,"tbsp","Pantry"],["milk",50,"ml","Fridge"],["butter",40,"g","Fridge"]],
+    ["Brown the mince, then soften the onion and grated carrot with it for 5 minutes.",
+     "Stir in the purée and 300ml gravy; simmer 15 minutes and add the peas.",
+     "Boil and mash the potatoes with butter and milk.",
+     "Top the mince with mash and bake at 200°C for 20 minutes until golden."]),
+
+  R("meatballs", "Pork & Apple Meatballs in Tomato Sauce", "🧆", "Italian", 35, ["batch","freezer"], 3, "m",
+    "Grated apple keeps the meatballs soft and sweet — very popular with small people. Roll some marble-sized ones for the 2-year-old and quarter them at serving; whole meatballs are a choking shape.",
+    [["pork mince",500,"g","Meat & Fish"],["apple",1,"","Fruit & Veg"],["breadcrumbs",50,"g","Pantry"],["passata",500,"ml","Pantry"],["garlic cloves",2,"","Fruit & Veg"],["pasta shapes",350,"g","Pantry"],["dried oregano",1,"tsp","Herbs & Spices"],["parmesan-style cheese",40,"g","Fridge"]],
+    ["Mix the mince, grated apple and breadcrumbs, and roll into small balls (marble-sized for the toddler).",
+     "Brown the meatballs in a little oil.",
+     "Add the garlic, oregano and passata; simmer 12–15 minutes until the meatballs are cooked through.",
+     "Cook the pasta and serve, quartering the little ones' meatballs."]),
+
+  R("chickstirfry", "Chicken & Broccoli Stir-Fry", "🥡", "Chinese", 20, ["quick"], 2, "m",
+    "A honey-soy glaze makes broccoli mysteriously acceptable. Cut the chicken small and cook right through. Steam the kids' broccoli soft rather than wok-crunchy.",
+    [["chicken breasts",2,"","Meat & Fish"],["broccoli",1,"head","Fruit & Veg"],["rice",300,"g","Pantry"],["low-salt soy sauce",3,"tbsp","Pantry"],["honey",1,"tbsp","Pantry"],["garlic cloves",2,"","Fruit & Veg"],["fresh ginger",1,"thumb","Fruit & Veg"],["sesame seeds",1,"tbsp","Pantry"]],
+    ["Get the rice on.",
+     "Stir-fry the chicken strips in a hot wok for 5–6 minutes until cooked through.",
+     "Add small broccoli florets with a splash of water; lid on for 3 minutes to steam soft.",
+     "Add the soy, honey, grated garlic and ginger; bubble until glossy. Sesame on top."]),
+
+  R("chickkorma", "Mild Chicken Korma", "🍛", "Indian", 35, ["batch"], 3, "m",
+    "The classic first curry — creamy, sweet, gentle. Thigh meat stays softest for little mouths. Naan strips for dipping; rice stirred through the sauce for the 2-year-old.",
+    [["chicken thigh fillets",500,"g","Meat & Fish"],["korma paste (mild)",3,"tbsp","Pantry"],["coconut milk",1,"tin","Pantry"],["basmati rice",300,"g","Pantry"],["onion",1,"","Fruit & Veg"],["ground almonds",2,"tbsp","Pantry"],["naan breads",2,"","Bakery"],["frozen peas",100,"g","Frozen"]],
+    ["Soften the chopped onion, then brown the diced chicken thighs for 5 minutes.",
+     "Stir in the korma paste for 1 minute, then the coconut milk and ground almonds.",
+     "Simmer 15–18 minutes until the chicken is cooked through; add the peas near the end.",
+     "Serve with rice and warm naan strips for dipping."]),
+
+  R("beeftacos", "Family Beef Tacos", "🌮", "Mexican", 25, ["quick","fun"], 3, "m",
+    "Taco night with proper mince. Keep the seasoning mild and pile toppings in bowls — building is the fun part. Deconstructed plates and halved cherry tomatoes for the little ones.",
+    [["beef mince",500,"g","Meat & Fish"],["taco shells or mini tortillas",8,"","Bakery"],["mild taco seasoning",1,"tbsp","Herbs & Spices"],["grated cheddar",120,"g","Fridge"],["little gem lettuce",1,"","Fruit & Veg"],["cherry tomatoes",200,"g","Fruit & Veg"],["soured cream",150,"ml","Fridge"],["sweetcorn",1,"small tin","Pantry"]],
+    ["Brown the mince, breaking it up well.",
+     "Stir in the seasoning and a splash of water; simmer 5 minutes.",
+     "Warm the shells and lay out bowls of cheese, lettuce, halved tomatoes, corn and soured cream.",
+     "Everyone builds their own; deconstructed plates for the kids."]),
+
+  R("sausagemash", "Sausages, Buttery Mash & Peas", "🌭", "British", 30, [], 3, "m",
+    "The dinner nobody argues with. Cut the kids' sausages lengthways then into half-moons — round slices are exactly windpipe-shaped. A puddle of gravy for dipping the mash.",
+    [["pork sausages",8,"","Meat & Fish"],["potatoes",1,"kg","Fruit & Veg"],["frozen peas",200,"g","Frozen"],["butter",40,"g","Fridge"],["milk",50,"ml","Fridge"],["gravy granules",2,"tbsp","Pantry"]],
+    ["Bake the sausages at 200°C for 20–25 minutes, turning once, until cooked through.",
+     "Boil the potatoes and mash with the butter and milk.",
+     "Cook the peas and make the gravy.",
+     "Cut the kids' sausages lengthways then into half-moons. Gravy puddle for dipping."]),
+
+  R("chicktray", "Sticky Honey Chicken Traybake", "🍯", "British", 45, [], 3, "m",
+    "One tray: sticky chicken thighs, potatoes and sweet roasted carrots. Shred the chicken small for the kids and check it's piping hot and cooked through at the bone.",
+    [["chicken thighs",8,"","Meat & Fish"],["baby potatoes",500,"g","Fruit & Veg"],["carrots",3,"","Fruit & Veg"],["red onion",1,"","Fruit & Veg"],["honey",2,"tbsp","Pantry"],["olive oil",2,"tbsp","Pantry"],["dried rosemary",1,"tsp","Herbs & Spices"]],
+    ["Heat the oven to 200°C. Halve the potatoes and chunk the carrots and onion; toss in oil and rosemary in a big tray. Roast 15 minutes.",
+     "Brush the chicken thighs with the honey mixed with a little oil and nestle into the tray.",
+     "Roast 25–30 minutes until the chicken is sticky, golden and cooked through.",
+     "Shred the kids' portions off the bone, checking for any small bones."]),
+
+  R("souvlaki", "Chicken Pitta Pockets with Tzatziki", "🥙", "Greek", 25, ["quick"], 2, "m",
+    "Lemony chicken strips in warm pitta with a cooling yogurt dip. Cut the kids' chicken small; the tzatziki doubles as a vegetable-delivery system for cucumber sticks.",
+    [["chicken breasts",2,"","Meat & Fish"],["pita breads",6,"","Bakery"],["natural yogurt",200,"ml","Fridge"],["cucumber",1,"","Fruit & Veg"],["lemon",1,"","Fruit & Veg"],["dried oregano",1,"tsp","Herbs & Spices"],["cherry tomatoes",150,"g","Fruit & Veg"],["little gem lettuce",1,"","Fruit & Veg"]],
+    ["Toss the chicken strips with oregano, lemon juice and a little oil.",
+     "Fry 6–8 minutes until cooked through and golden.",
+     "Make tzatziki: grate half the cucumber, squeeze dry, stir into the yogurt with a squeeze of lemon.",
+     "Warm the pitas and stuff. Cut the kids' chicken small; cucumber sticks with the leftover dip."]),
+
+  R("baconpasta", "Bacon & Pea Pasta", "🥓", "Italian", 20, ["quick"], 3, "m",
+    "Crispy bacon bits and sweet peas in a creamy sauce — a reliable crowd-pleaser. Bacon is salty, so keep the kids' portions sensible and don't add extra salt anywhere.",
+    [["bacon lardons",200,"g","Meat & Fish"],["penne or fusilli",350,"g","Pantry"],["frozen peas",200,"g","Frozen"],["crème fraîche",150,"ml","Fridge"],["parmesan-style cheese",40,"g","Fridge"],["garlic cloves",1,"","Fruit & Veg"]],
+    ["Cook the pasta, adding the peas for the last 2 minutes. Save a cup of pasta water.",
+     "Meanwhile fry the lardons until crisp; add the garlic for the last minute.",
+     "Stir in the crème fraîche with a splash of pasta water.",
+     "Toss with the pasta and peas, and finish with parmesan. No extra salt — the bacon's got it covered."]),
+
+  R("smashburgers", "Smash Beef Burgers", "🍔", "American", 25, ["fun"], 3, "m",
+    "Thin smashed patties cook fast and stay tender. Cook them right through for the kids — no pink. Serve the 2-year-old's as pieces with the bun on the side.",
+    [["beef mince",500,"g","Meat & Fish"],["burger buns",4,"","Bakery"],["cheese slices",4,"","Fridge"],["little gem lettuce",1,"","Fruit & Veg"],["tomatoes",2,"","Fruit & Veg"],["potato wedges",600,"g","Frozen"],["tomato ketchup",4,"tbsp","Pantry"]],
+    ["Get the wedges in the oven following the pack.",
+     "Roll the mince into balls, then smash flat in a screaming-hot pan. About 3 minutes each side — cooked through, no pink, for the kids.",
+     "Cheese slice on for the last minute.",
+     "Build in buns; pieces with bun on the side for the toddler."]),
+
+  R("chickenpie", "Creamy Chicken & Leek Pie", "🥧", "British", 50, ["weekend","batch"], 2, "m",
+    "Golden pastry lid, creamy middle — Sunday-ish food without a full roast. The filling stays hot ages; serve the kids' portions early. Pastry offcuts keep the 4-year-old busy.",
+    [["chicken thigh fillets",500,"g","Meat & Fish"],["leeks",2,"","Fruit & Veg"],["puff pastry sheet",1,"","Fridge"],["crème fraîche",200,"ml","Fridge"],["low-salt veg stock cube",1,"","Pantry"],["frozen peas",150,"g","Frozen"],["eggs",1,"","Fridge"]],
+    ["Fry the diced chicken and sliced leeks for 8–10 minutes until the chicken is cooked through.",
+     "Stir in the crème fraîche, a splash of stock and the peas; season gently.",
+     "Tip into a pie dish, lay the pastry over, crimp, and brush with beaten egg.",
+     "Bake at 200°C for 25–30 minutes until puffed and golden. Cool the kids' filling well."]),
+
+  R("koftas", "Gentle Lamb Koftas with Dips", "🧆", "Middle Eastern", 30, [], 2, "m",
+    "Mild cumin lamb fingers with yogurt and hummus for dunking. Shape the kids' koftas thin so they cook through, and crumble the 2-year-old's into his flatbread.",
+    [["lamb mince",500,"g","Meat & Fish"],["ground cumin",1,"tsp","Herbs & Spices"],["pita breads",6,"","Bakery"],["natural yogurt",200,"ml","Fridge"],["hummus",200,"g","Fridge"],["cucumber",1,"","Fruit & Veg"],["cherry tomatoes",150,"g","Fruit & Veg"]],
+    ["Mix the lamb with the cumin and shape into finger-sized koftas (thinner ones for the kids).",
+     "Fry or grill 10–12 minutes, turning, until cooked through with no pink.",
+     "Warm the pitas; chop the cucumber into sticks and halve the tomatoes.",
+     "Serve with yogurt and hummus for dunking. Crumble the toddler's kofta into his pita."]),
+
+  R("chicksoup", "Cosy Chicken Noodle Soup", "🍲", "American", 35, ["batch","freezer"], 3, "m",
+    "The get-well-soon classic. Shred the chicken fine, snip the noodles short, and serve the kids' bowls barely warm. Freezes well before the noodles go in.",
+    [["chicken thigh fillets",400,"g","Meat & Fish"],["egg noodles",200,"g","Pantry"],["carrots",3,"","Fruit & Veg"],["celery sticks",2,"","Fruit & Veg"],["onion",1,"","Fruit & Veg"],["low-salt veg stock cube",2,"","Pantry"],["frozen peas",100,"g","Frozen"],["crusty bread",1,"loaf","Bakery"]],
+    ["Soften the diced onion, carrots and celery for 8 minutes.",
+     "Add the chicken thighs and 1.2 litres of stock; simmer 15 minutes until cooked through.",
+     "Lift out the chicken, shred it, and return with the noodles and peas for 4 minutes.",
+     "Snip the kids' noodles short and cool their bowls. Bread for dunking."]),
+
+  /* ============ FISH ============ */
+  R("fishfingers", "Homemade Fish Fingers, Chips & Peas", "🐟", "British", 30, ["fun"], 3, "f",
+    "Chunky real-fish fingers in a crispy crumb. Run your fingers over the fish first to check for stray bones — twice for the kids' pieces. Lemon for grown-ups, ketchup for everyone else.",
+    [["white fish fillets",500,"g","Meat & Fish"],["breadcrumbs",120,"g","Pantry"],["plain flour",3,"tbsp","Pantry"],["eggs",2,"","Fridge"],["oven chips",600,"g","Frozen"],["frozen peas",200,"g","Frozen"],["lemon",1,"","Fruit & Veg"],["tomato ketchup",4,"tbsp","Pantry"]],
+    ["Get the chips in the oven following the pack.",
+     "Cut the fish into chunky fingers, checking carefully for bones. Dust in flour, dip in egg, coat in breadcrumbs.",
+     "Bake on an oiled tray at 200°C for 12–15 minutes until crisp and flaking.",
+     "Cook the peas. Double-check the kids' fish for bones as you plate up."]),
+
+  R("salmon", "Honey-Soy Salmon with Rice", "🍣", "Japanese", 25, ["quick"], 2, "f",
+    "Oily fish is brilliant for growing brains, and the sweet glaze helps it disappear. Flake the kids' salmon and check meticulously for bones. Soft-steamed broccoli on the side.",
+    [["salmon fillets",4,"","Meat & Fish"],["rice",300,"g","Pantry"],["broccoli",1,"head","Fruit & Veg"],["low-salt soy sauce",2,"tbsp","Pantry"],["honey",1,"tbsp","Pantry"],["sesame seeds",1,"tbsp","Pantry"],["lemon",1,"","Fruit & Veg"]],
+    ["Get the rice on and steam the broccoli soft.",
+     "Mix the soy and honey and brush over the salmon.",
+     "Bake at 200°C for 12–14 minutes until it flakes easily.",
+     "Flake the kids' portions, checking carefully for bones. Sesame on top, lemon for the grown-ups."]),
+
+  R("fishpie", "Creamy Fish Pie", "🥧", "British", 55, ["weekend","batch"], 2, "f",
+    "Soft fish in white sauce under mash — gentle, warming, and a sneaky way into fish. Use a ready-boned fish pie mix and still check the kids' spoonfuls. Portion theirs early to cool.",
+    [["fish pie mix",500,"g","Meat & Fish"],["potatoes",1,"kg","Fruit & Veg"],["milk",400,"ml","Fridge"],["butter",50,"g","Fridge"],["plain flour",3,"tbsp","Pantry"],["frozen peas",150,"g","Frozen"],["grated cheddar",80,"g","Fridge"]],
+    ["Boil the potatoes and mash with half the butter and a splash of the milk.",
+     "Melt the rest of the butter, stir in the flour, then whisk in the milk for a smooth white sauce.",
+     "Fold the fish mix and peas into the sauce and tip into a baking dish. Top with mash and the cheese.",
+     "Bake at 200°C for 25–30 minutes until golden and bubbling. Cool the kids' portions well."]),
+
+  R("tunapasta", "Storecupboard Tuna Tomato Pasta", "🐟", "Italian", 20, ["quick","batch"], 2, "f",
+    "Made entirely from tins and whatever pasta is left in the cupboard. Mild, soft and cheap. Stir the tuna in well so there are no big 'fishy bits' to inspect.",
+    [["tuna",2,"tins","Meat & Fish"],["pasta shapes",350,"g","Pantry"],["chopped tomatoes",2,"tins","Pantry"],["onion",1,"","Fruit & Veg"],["garlic cloves",2,"","Fruit & Veg"],["sweetcorn",1,"small tin","Pantry"],["olive oil",2,"tbsp","Pantry"]],
+    ["Cook the pasta following the pack.",
+     "Soften the onion and garlic in the oil, then add the tomatoes and simmer 8 minutes.",
+     "Flake in the drained tuna and sweetcorn and warm through.",
+     "Toss with the pasta, stirring the tuna in well so it disappears into the sauce."]),
 ];
 
 /* Non-cooking nights */
 const PSEUDO = {
-  _leftovers: { id: "_leftovers", name: "Leftovers night", emoji: "🥡", cuisine: "", mins: 5, tags: [], kid: 3, note: "", ing: [] },
-  _out:       { id: "_out",       name: "Eating out / takeaway", emoji: "🍴", cuisine: "", mins: 0, tags: [], kid: 3, note: "", ing: [] },
+  _leftovers: { id: "_leftovers", name: "Leftovers night", emoji: "🥡", cuisine: "", mins: 5, tags: [], kid: 3, diet: "v", note: "", ing: [], steps: [] },
+  _out:       { id: "_out",       name: "Eating out / takeaway", emoji: "🍴", cuisine: "", mins: 0, tags: [], kid: 3, diet: "v", note: "", ing: [], steps: [] },
 };
 
 /* ============ Family & portions ============ */
@@ -565,7 +941,13 @@ function normalize(raw) {
   raw.approvals = raw.approvals || {};
   raw.favorites = raw.favorites || [];
   raw.history = raw.history || [];
-  raw.custom = (raw.custom || []).filter(r => r && r.id && r.name);
+  raw.custom = (raw.custom || []).filter(r => r && r.id && r.name).map(r => ({
+    ...r,
+    tags: r.tags || [],
+    ing: r.ing || [],
+    steps: r.steps || [],
+    diet: r.diet || "v",
+  }));
   raw.extras = raw.extras || [];
   return raw;
 }
@@ -596,6 +978,7 @@ function allRecipes() { return RECIPES.concat(state.custom); }
 function getR(id) { return BUILTIN_BYID[id] || PSEUDO[id] || state.custom.find(r => r.id === id) || null; }
 function isCooking(id) { return id && !PSEUDO[id]; }
 const familyFactor = () => state.family.reduce((s, m) => s + (m.on ? m.factor : 0), 0);
+const DIET_CHIP = { m: "🍗 meat", f: "🐟 fish" };
 
 /* ============ Week planning ============ */
 function candidatesFor(dayIdx, usedIds, prevCuisine) {
@@ -757,6 +1140,7 @@ function renderWeek() {
           ${pseudo ? `<span class="chip">😌 no cooking tonight</span>` : `
           <span class="chip time">⏱ ${r.mins} min</span>
           <span class="chip">${esc(r.cuisine)}</span>
+          ${DIET_CHIP[r.diet] ? `<span class="chip">${DIET_CHIP[r.diet]}</span>` : ""}
           <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
           ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
           ${kidBadges(r.id)}`}
@@ -803,6 +1187,8 @@ function renderRecipes() {
   const q = $("#searchBox").value.trim().toLowerCase();
   const list = allRecipes().filter(r => {
     if (q && !(r.name + " " + r.cuisine).toLowerCase().includes(q)) return false;
+    if (activeFilters.has("veggie") && r.diet !== "v") return false;
+    if (activeFilters.has("meat") && r.diet === "v") return false;
     if (activeFilters.has("quick") && r.mins > 25) return false;
     if (activeFilters.has("fun") && !r.tags.includes("fun")) return false;
     if (activeFilters.has("batch") && !(r.tags.includes("batch") || r.tags.includes("freezer"))) return false;
@@ -826,6 +1212,7 @@ function renderRecipes() {
       <div class="meal-meta">
         <span class="chip time">⏱ ${r.mins}m</span>
         ${r.cuisine ? `<span class="chip">${esc(r.cuisine)}</span>` : ""}
+        ${DIET_CHIP[r.diet] ? `<span class="chip">${DIET_CHIP[r.diet]}</span>` : ""}
         <span class="chip kids">${"💚".repeat(r.kid)}</span>
         ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
         ${kidBadges(r.id)}
@@ -904,6 +1291,7 @@ function openRecipe(id) {
     <div class="meal-meta">
       <span class="chip time">⏱ ${r.mins} min</span>
       ${r.cuisine ? `<span class="chip">${esc(r.cuisine)}</span>` : ""}
+      ${DIET_CHIP[r.diet] ? `<span class="chip">${DIET_CHIP[r.diet]}</span>` : ""}
       <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
       ${r.tags.map(t => `<span class="chip">${esc(t)}</span>`).join("")}
       ${mine ? `<span class="chip mine">✏️ your recipe</span>` : ""}
@@ -914,6 +1302,10 @@ function openRecipe(id) {
     <ul class="ing-list">
       ${r.ing.map(([item, qty, unit]) => `<li><span>${esc(item)}</span><span>${esc(niceQty(qty * scale, unit))}</span></li>`).join("")}
     </ul>` : ""}
+    ${r.steps && r.steps.length ? `<div class="section-label">👨‍🍳 Method</div>
+    <ol class="steps-list">
+      ${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}
+    </ol>` : ""}
     <div class="section-label">Did the kids eat it?</div>
     <div class="approval-row">
       <button class="approve-btn ${a.daughter ? "yes" : ""}" onclick="toggleApproval('${id}','daughter')">👧 Daughter ${a.daughter ? "✓ loved it" : "— tap if she ate it"}</button>
@@ -963,7 +1355,7 @@ function openEditor(id) {
     <div class="form-grid">
       <div class="full">
         <label for="f_name">Name *</label>
-        <input id="f_name" placeholder="e.g. Grandma's veggie pie" value="${r ? esc(r.name) : ""}" maxlength="60">
+        <input id="f_name" placeholder="e.g. Grandma's chicken pie" value="${r ? esc(r.name) : ""}" maxlength="60">
       </div>
       <div>
         <label for="f_emoji">Emoji</label>
@@ -977,6 +1369,14 @@ function openEditor(id) {
       <div>
         <label for="f_mins">Cook time (minutes)</label>
         <input id="f_mins" type="number" min="5" max="240" value="${r ? r.mins : 30}">
+      </div>
+      <div>
+        <label for="f_diet">Type</label>
+        <select id="f_diet">
+          <option value="v" ${!r || r.diet === "v" ? "selected" : ""}>🥕 Veggie</option>
+          <option value="m" ${r && r.diet === "m" ? "selected" : ""}>🍗 Meat</option>
+          <option value="f" ${r && r.diet === "f" ? "selected" : ""}>🐟 Fish</option>
+        </select>
       </div>
       <div>
         <label for="f_kid">Kid-friendliness</label>
@@ -995,6 +1395,10 @@ function openEditor(id) {
       <div class="full">
         <label for="f_note">👶 Notes for the little ones (optional)</label>
         <textarea id="f_note" placeholder="How to serve it for a 4-year-old and a 2-year-old…">${r ? esc(r.note) : ""}</textarea>
+      </div>
+      <div class="full">
+        <label for="f_steps">👨‍🍳 Method (one step per line)</label>
+        <textarea id="f_steps" rows="5" placeholder="Fry the onion until soft.&#10;Add the sauce and simmer 10 minutes.&#10;Cook the pasta and combine.">${r ? esc((r.steps || []).join("\n")) : ""}</textarea>
       </div>
       <div class="full">
         <label>🛒 Ingredients — for 4 adult portions (Herbi scales them to your family)</label>
@@ -1023,7 +1427,7 @@ function ingRowHtml([item, qty, unit, cat]) {
   return `<div class="ing-row" data-ing>
     <input class="i-item" placeholder="e.g. carrots" value="${esc(item || "")}" maxlength="48">
     <input class="i-qty" type="number" min="0" step="any" placeholder="2" value="${qty === "" ? "" : qty}">
-    <input class="i-unit" list="units" placeholder="g / tin" value="${esc(unit || "")}" maxlength="16">
+    <input class="i-unit" placeholder="g / tin" value="${esc(unit || "")}" maxlength="16">
     <select class="i-cat">${CATS.filter(c => c !== "Your extras").map(c => `<option ${c === cat ? "selected" : ""}>${c}</option>`).join("")}</select>
     <button type="button" class="del" title="Remove" onclick="this.parentElement.remove()">✕</button>
   </div>`;
@@ -1053,8 +1457,10 @@ function saveEditor(id) {
     cuisine: $("#f_cuisine").value.trim(),
     mins,
     kid: parseInt($("#f_kid").value, 10),
+    diet: $("#f_diet").value,
     tags: [...document.querySelectorAll("#f_tags .tag-toggle.on")].map(b => b.dataset.tag),
     note: $("#f_note").value.trim(),
+    steps: $("#f_steps").value.split("\n").map(s => s.trim()).filter(Boolean),
     ing,
   };
   if (id) {

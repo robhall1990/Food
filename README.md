@@ -1,6 +1,6 @@
 # 🌿 Herbi 2.0 — Family Dinner Planner
 
-A rebuilt, family-first version of the Herbi meal planner: plant-powered dinner
+A rebuilt, family-first version of the Herbi meal planner: easy dinner
 planning for **two grown-ups, a 4-year-old, and a 2-year-old**.
 
 It's a single self-contained HTML file — no build step, no server, no accounts.
@@ -39,14 +39,20 @@ recipes, grouped by supermarket section, and **scaled to your family**
 copy the list as text, or print it. Tap a family member's name in the header
 to exclude them (date night, kid at grandma's) and portions rescale.
 
-**🍲 50 vegetarian dinners built in** — searchable and filterable (quick /
-kid-approved / batch-and-freeze / fun night / my recipes), each with
-kid-friendliness ratings.
+**🍲 71 dinners built in** — 50 veggie, 17 meat and 4 fish, searchable and
+filterable (veggie / meat & fish / quick / kid-approved / batch-and-freeze /
+fun night / my recipes), each with kid-friendliness ratings.
+
+**👨‍🍳 Full cooking methods** — every recipe has numbered step-by-step
+instructions alongside its scaled ingredients, written for real weeknights
+(what to get on first, when to blitz for the toddler, food-safety checks for
+meat and fish).
 
 **✏️ Your own recipes** — add family favourites with the built-in editor
-(name, cook time, kid rating, tags, little-ones notes, and ingredients with
-aisle categories). Custom recipes join the planner rotation and the shopping
-list automatically, and can be edited or deleted any time.
+(name, cook time, veggie/meat/fish type, kid rating, tags, little-ones notes,
+method steps, and ingredients with aisle categories). Custom recipes join the
+planner rotation and the shopping list automatically, and can be edited or
+deleted any time.
 
 **🥡 Real-life nights** — mark any day as "Leftovers" or "Eating out /
 takeaway" via the ✏️ button so the plan (and shopping list) match reality.
