@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Herbi 2.0 — Family Dinner Planner</title>
+<title>Mealio — Family Dinner Planner</title>
 <style>
   :root {
     --bg: #f6f4ee;
@@ -262,7 +262,7 @@
 
 <header>
   <div class="header-row">
-    <div class="logo">🌿 Herbi <span>2.0</span></div>
+    <div class="logo">🍽️ Meal<span>io</span></div>
     <div class="tagline">Easy family dinners for two grown-ups &amp; two small humans</div>
     <div class="family" id="familyChips" title="Tap a name to include/exclude them from portions"></div>
   </div>
@@ -931,7 +931,8 @@ const DEFAULT_FAMILY = [
 ];
 
 /* ============ State ============ */
-const STORE_KEY = "herbi2";
+const STORE_KEY = "mealio";
+const LEGACY_STORE_KEY = "herbi2"; // migrate anyone's data from the old Herbi branding
 let state = load();
 function normalize(raw) {
   if (!raw || !Array.isArray(raw.week) || raw.week.length !== 7) return null;
@@ -969,6 +970,10 @@ function load() {
     const raw = normalize(JSON.parse(localStorage.getItem(STORE_KEY)));
     if (raw) return raw;
   } catch (e) { /* corrupted storage — start fresh */ }
+  try {
+    const legacy = normalize(JSON.parse(localStorage.getItem(LEGACY_STORE_KEY)));
+    if (legacy) { localStorage.setItem(STORE_KEY, JSON.stringify(legacy)); return legacy; }
+  } catch (e) { /* no legacy data either */ }
   return freshState();
 }
 function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -1069,7 +1074,7 @@ function niceQty(q, unit) {
 }
 function listAsText() {
   const groups = shoppingList();
-  let out = "🌿 Herbi shopping list\n";
+  let out = "🍽️ Mealio shopping list\n";
   CATS.forEach(cat => {
     if (cat === "Your extras" || !groups[cat]) return;
     out += `\n${cat.toUpperCase()}\n`;
@@ -1111,7 +1116,7 @@ function renderWeek() {
       <div class="empty-week">
         <div class="big-emoji">🥕</div>
         <h3>No dinners planned yet</h3>
-        <p>Hit the button and Herbi will pick seven kid-tested dinners —<br>quick ones on school nights, something fun on Friday.</p>
+        <p>Hit the button and Mealio will pick seven kid-tested dinners —<br>quick ones on school nights, something fun on Friday.</p>
         <button class="btn" onclick="planWeek()">✨ Plan my week</button>
       </div>`;
     return;
@@ -1401,7 +1406,7 @@ function openEditor(id) {
         <textarea id="f_steps" rows="5" placeholder="Fry the onion until soft.&#10;Add the sauce and simmer 10 minutes.&#10;Cook the pasta and combine.">${r ? esc((r.steps || []).join("\n")) : ""}</textarea>
       </div>
       <div class="full">
-        <label>🛒 Ingredients — for 4 adult portions (Herbi scales them to your family)</label>
+        <label>🛒 Ingredients — for 4 adult portions (Mealio scales them to your family)</label>
         <div class="ing-editor" id="f_ings">
           <div class="ing-row" style="font-size:.72rem;color:var(--ink-soft);font-weight:700">
             <span>Item</span><span>Qty</span><span>Unit</span><span>Aisle</span><span></span>
@@ -1489,7 +1494,7 @@ function exportBackup() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `herbi-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `mealio-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
   toast("Backup downloaded 💾");
@@ -1504,7 +1509,7 @@ function importBackup(file) {
       save(); renderAll();
       toast("Backup restored 📥");
     } catch (e) {
-      toast("That file doesn't look like a Herbi backup");
+      toast("That file doesn't look like a Mealio backup");
     }
   };
   reader.readAsText(file);

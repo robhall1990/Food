@@ -1,7 +1,7 @@
-# 🌿 Herbi 2.0 — Family Dinner Planner
+# 🍽️ Mealio — Family Dinner Planner
 
-A rebuilt, family-first version of the Herbi meal planner: easy dinner
-planning for **two grown-ups, a 4-year-old, and a 2-year-old**.
+A family-first dinner planner: easy meal planning for **two grown-ups,
+a 4-year-old, and a 2-year-old**. (Formerly known as Herbi.)
 
 It's a single self-contained HTML file — no build step, no server, no accounts.
 
