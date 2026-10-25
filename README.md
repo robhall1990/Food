@@ -57,11 +57,17 @@ instructions alongside its scaled ingredients, written for real weeknights
 (what to get on first, when to blitz for the toddler, food-safety checks for
 meat and fish).
 
+**🥗 Nutrition at a glance** — every built-in recipe shows calories, protein,
+carbs, fat, fibre and salt per adult portion, with a kcal chip on every
+card so you can scan the week at a glance. These are reasonable estimates
+from the ingredients, not a lab analysis — flagged as such in the app, and
+a child's smaller portion will have less than the adult figure shown.
+
 **✏️ Your own recipes** — add family favourites with the built-in editor
 (name, cook time, veggie/meat/fish type, kid rating, tags, little-ones notes,
-method steps, and ingredients with aisle categories). Custom recipes join the
-box's suggestion pool and the shopping list automatically, and can be edited
-or deleted any time.
+method steps, ingredients with aisle categories, and optional nutrition
+figures). Custom recipes join the box's suggestion pool and the shopping
+list automatically, and can be edited or deleted any time.
 
 **➕ Shopping extras** — add anything else you need (milk, bananas, snacks)
 to the bottom of the shopping list.
