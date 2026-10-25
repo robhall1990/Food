@@ -70,7 +70,7 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ---- Week planner ---- */
+  /* ---- Weekly box ---- */
   .week-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
   .week-head h2 { font-size: 1.2rem; }
   .week-head .spacer { flex: 1; }
@@ -84,22 +84,28 @@
   .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
   .btn.danger { background: var(--coral); }
   .btn.small { padding: 6px 10px; font-size: .8rem; border-radius: 8px; box-shadow: none; }
+  .box-size-ctrl {
+    display: flex; align-items: center; gap: 8px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px;
+    font-size: .85rem; font-weight: 700; color: var(--ink-soft);
+  }
+  .box-size-ctrl span { min-width: 64px; text-align: center; }
   .stats { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
   .stat {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 10px 16px; font-size: .82rem; color: var(--ink-soft);
   }
   .stat b { display: block; font-size: 1.15rem; color: var(--ink); }
-  .days { display: grid; gap: 12px; }
-  .day-card {
+  .box-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .box-card {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 14px 16px;
-    display: grid; grid-template-columns: 88px 1fr auto; gap: 14px; align-items: center;
+    box-shadow: var(--shadow); padding: 16px;
+    display: flex; flex-direction: column; gap: 6px;
   }
-  .day-card.locked { outline: 2px solid var(--amber); }
-  .day-card.rest { background: transparent; box-shadow: none; border-style: dashed; }
-  .day-label b { display: block; font-size: .95rem; }
-  .day-label small { color: var(--ink-soft); }
+  .box-card.locked { outline: 2px solid var(--amber); }
+  .box-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .box-card-actions { display: flex; gap: 4px; }
+  .box-card .emoji { font-size: 2.1rem; margin-top: 2px; }
   .meal-name { font-weight: 700; font-size: 1.02rem; cursor: pointer; }
   .meal-name:hover { color: var(--green); }
   .meal-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
@@ -112,13 +118,19 @@
   .chip.kids { background: var(--coral-soft); color: var(--coral); }
   .chip.mine { background: var(--amber-soft); color: #9a6a1d; }
   @media (prefers-color-scheme: dark) { .chip.mine { color: var(--amber); } }
-  .day-actions { display: flex; gap: 6px; }
+  .chip.day-chip { background: var(--amber-soft); color: #9a6a1d; }
+  @media (prefers-color-scheme: dark) { .chip.day-chip { color: var(--amber); } }
   .icon-btn {
     border: 1px solid var(--line); background: var(--card); border-radius: 9px;
     width: 36px; height: 36px; cursor: pointer; font-size: 1rem;
     display: inline-flex; align-items: center; justify-content: center;
   }
   .icon-btn:hover { background: var(--green-soft); }
+  .box-card.empty-slot {
+    border: 2px dashed var(--green); background: transparent; box-shadow: none;
+    align-items: center; justify-content: center; text-align: center;
+    color: var(--green); font-weight: 700; cursor: pointer; min-height: 170px;
+  }
   .empty-week {
     text-align: center; padding: 60px 20px; background: var(--card);
     border: 2px dashed var(--line); border-radius: var(--radius);
@@ -208,8 +220,8 @@
     font: inherit; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line);
     background: var(--bg); color: var(--ink);
   }
-  .day-menu { display: grid; gap: 8px; margin-top: 16px; }
-  .day-menu button { text-align: left; }
+  .menu-list { display: grid; gap: 8px; margin-top: 16px; }
+  .menu-list button { text-align: left; }
 
   /* ---- Recipe editor form ---- */
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
@@ -243,9 +255,6 @@
   .toast.show { transform: translateX(-50%) translateY(0); }
 
   @media (max-width: 640px) {
-    .day-card { grid-template-columns: 1fr; gap: 8px; }
-    .day-actions { justify-content: flex-end; }
-    .day-label { display: flex; gap: 8px; align-items: baseline; }
     .form-grid { grid-template-columns: 1fr; }
     .ing-row { grid-template-columns: 1fr 52px 70px 90px 28px; }
   }
@@ -277,13 +286,18 @@
   <!-- WEEK -->
   <section class="panel active" id="panel-week">
     <div class="week-head">
-      <h2 id="weekLabel"></h2>
+      <h2 id="weekLabel">Your week's box</h2>
       <div class="spacer"></div>
+      <div class="box-size-ctrl" title="How many meals this week">
+        <button class="icon-btn" id="boxMinusBtn" title="Fewer meals">−</button>
+        <span id="boxSizeLabel">5 meals</span>
+        <button class="icon-btn" id="boxPlusBtn" title="More meals">+</button>
+      </div>
       <button class="btn ghost" id="clearWeekBtn">Clear</button>
-      <button class="btn" id="planBtn">✨ Plan my week</button>
+      <button class="btn" id="planBtn">✨ Get my picks</button>
     </div>
     <div class="stats" id="weekStats"></div>
-    <div class="days" id="dayList"></div>
+    <div class="box-grid" id="dayList"></div>
   </section>
 
   <!-- RECIPES -->
@@ -916,11 +930,6 @@ const RECIPES = [
 ];
 
 /* Non-cooking nights */
-const PSEUDO = {
-  _leftovers: { id: "_leftovers", name: "Leftovers night", emoji: "🥡", cuisine: "", mins: 5, tags: [], kid: 3, diet: "v", note: "", ing: [], steps: [] },
-  _out:       { id: "_out",       name: "Eating out / takeaway", emoji: "🍴", cuisine: "", mins: 0, tags: [], kid: 3, diet: "v", note: "", ing: [], steps: [] },
-};
-
 /* ============ Family & portions ============ */
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const DEFAULT_FAMILY = [
@@ -930,13 +939,36 @@ const DEFAULT_FAMILY = [
   { key: "son",      name: "Son · 2",      emoji: "👦", factor: 0.3, on: true },
 ];
 
+/* ============ The weekly box ============ */
+const DEFAULT_BOX_SIZE = 5;
+const MIN_BOX_SIZE = 3;
+const MAX_BOX_SIZE = 8;
+function emptySlot(day) { return { id: null, day: day === undefined ? null : day, locked: false }; }
+
 /* ============ State ============ */
 const STORE_KEY = "mealio";
 const LEGACY_STORE_KEY = "herbi2"; // migrate anyone's data from the old Herbi branding
 let state = load();
 function normalize(raw) {
-  if (!raw || !Array.isArray(raw.week) || raw.week.length !== 7) return null;
-  raw.locked = (Array.isArray(raw.locked) && raw.locked.length === 7) ? raw.locked : Array(7).fill(false);
+  if (!raw || typeof raw !== "object") return null;
+  if (!Array.isArray(raw.box) && !Array.isArray(raw.week)) return null;
+  if (!Array.isArray(raw.box)) {
+    // migrate from the old 7-day week grid (pre-box versions of Mealio)
+    const legacyWeek = Array.isArray(raw.week) ? raw.week : [];
+    const legacyLocked = Array.isArray(raw.locked) ? raw.locked : [];
+    raw.box = legacyWeek
+      .map((id, i) => (id && id !== "_leftovers" && id !== "_out") ? { id, day: i, locked: !!legacyLocked[i] } : null)
+      .filter(Boolean);
+  }
+  raw.box = raw.box
+    .filter(s => s && typeof s === "object" && (s.id === null || s.id === undefined || typeof s.id === "string"))
+    .map(s => ({
+      id: s.id || null,
+      day: Number.isInteger(s.day) && s.day >= 0 && s.day <= 6 ? s.day : null,
+      locked: !!s.locked,
+    }));
+  while (raw.box.length < DEFAULT_BOX_SIZE) raw.box.push(emptySlot());
+  delete raw.week; delete raw.locked;
   raw.family = (Array.isArray(raw.family) && raw.family.length === 4) ? raw.family : DEFAULT_FAMILY.map(m => ({...m}));
   raw.checked = raw.checked || {};
   raw.approvals = raw.approvals || {};
@@ -954,12 +986,11 @@ function normalize(raw) {
 }
 function freshState() {
   return {
-    week: Array(7).fill(null),       // recipe ids (or pseudo ids) per day
-    locked: Array(7).fill(false),
+    box: Array.from({ length: DEFAULT_BOX_SIZE }, () => emptySlot()), // this week's meal picks
     favorites: [],                    // recipe ids
     approvals: {},                    // id -> {daughter:bool, son:bool}
     checked: {},                      // shopping item key -> bool
-    history: [],                      // last plan's ids (variety between weeks)
+    history: [],                      // last box's ids (variety between weeks)
     custom: [],                       // user-added recipes
     extras: [],                       // user-added shopping items [{n, q}]
     family: DEFAULT_FAMILY.map(m => ({...m})),
@@ -980,59 +1011,65 @@ function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 const BUILTIN_BYID = Object.fromEntries(RECIPES.map(r => [r.id, r]));
 function allRecipes() { return RECIPES.concat(state.custom); }
-function getR(id) { return BUILTIN_BYID[id] || PSEUDO[id] || state.custom.find(r => r.id === id) || null; }
-function isCooking(id) { return id && !PSEUDO[id]; }
+function getR(id) { return id ? (BUILTIN_BYID[id] || state.custom.find(r => r.id === id) || null) : null; }
 const familyFactor = () => state.family.reduce((s, m) => s + (m.on ? m.factor : 0), 0);
 const DIET_CHIP = { m: "🍗 meat", f: "🐟 fish" };
 
-/* ============ Week planning ============ */
-function candidatesFor(dayIdx, usedIds, prevCuisine) {
-  return allRecipes().filter(r => {
-    if (usedIds.has(r.id)) return false;
-    if (dayIdx <= 3 && r.mins > 35) return false;          // school-night speed limit
-    if (r.cuisine && r.cuisine === prevCuisine) return false; // vary cuisines day to day
-    return true;
-  });
+/* ============ Picking the box ============ */
+function candidates(usedIds, prevCuisine) {
+  return allRecipes().filter(r => !usedIds.has(r.id) && (!prevCuisine || r.cuisine !== prevCuisine));
 }
-function scoreRecipe(r, dayIdx) {
+function scoreRecipe(r) {
   let s = Math.random() * 2;
   if (state.favorites.includes(r.id)) s += 2;
   const ap = state.approvals[r.id] || {};
   s += (ap.daughter ? 1 : 0) + (ap.son ? 1 : 0);
-  if (dayIdx <= 3) s += r.kid;                              // tired weeknights → safe bets
-  if (dayIdx === 4 && r.tags.includes("fun")) s += 3;       // Friday fun night
-  if (dayIdx >= 5 && (r.tags.includes("weekend") || r.tags.includes("batch"))) s += 2;
+  s += r.kid * 0.6;                                         // general bias toward kid-friendly meals
+  if (r.mins <= 25) s += 0.5;                                // mild preference for quicker meals
   if (state.history.includes(r.id)) s -= 2.5;               // didn't we just have this?
   return s;
 }
-function planWeek() {
-  const used = new Set(state.week.filter((id, i) => id && state.locked[i]));
-  const newWeek = state.week.slice();
-  for (let i = 0; i < 7; i++) {
-    if (state.locked[i] && newWeek[i]) { used.add(newWeek[i]); continue; }
-    const prevId = i > 0 ? newWeek[i-1] : null;
+function refreshBox() {
+  const used = new Set(state.box.filter(s => s.locked && s.id).map(s => s.id));
+  const newBox = state.box.map(s => ({ ...s }));
+  for (let i = 0; i < newBox.length; i++) {
+    if (newBox[i].locked && newBox[i].id) continue;
+    const prevId = i > 0 ? newBox[i-1].id : null;
     const prev = prevId && getR(prevId) ? getR(prevId).cuisine : null;
-    let pool = candidatesFor(i, used, prev);
+    let pool = candidates(used, prev);
     if (!pool.length) pool = allRecipes().filter(r => !used.has(r.id));
-    pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
-    newWeek[i] = pool[0].id;
-    used.add(newWeek[i]);
+    pool.sort((a, b) => scoreRecipe(b) - scoreRecipe(a));
+    newBox[i].id = pool[0].id;
+    used.add(newBox[i].id);
   }
-  state.history = state.week.filter(isCooking);
-  state.week = newWeek;
+  state.history = state.box.filter(s => s.id).map(s => s.id);
+  state.box = newBox;
   state.checked = {};
   save(); renderAll();
-  toast("New week planned! 🌱");
+  toast("Fresh picks ready! 🌱");
 }
-function swapDay(i) {
-  const used = new Set(state.week.filter((id, j) => id && j !== i));
-  const prevId = i > 0 ? state.week[i-1] : null;
+function swapSlot(i) {
+  const used = new Set(state.box.filter((s, j) => j !== i && s.id).map(s => s.id));
+  const prevId = i > 0 ? state.box[i-1].id : null;
   const prev = prevId && getR(prevId) ? getR(prevId).cuisine : null;
-  let pool = candidatesFor(i, used, prev).filter(r => r.id !== state.week[i]);
-  if (!pool.length) pool = allRecipes().filter(r => !used.has(r.id) && r.id !== state.week[i]);
-  if (!pool.length) return;
-  pool.sort((a, b) => scoreRecipe(b, i) - scoreRecipe(a, i));
-  state.week[i] = pool[Math.floor(Math.random() * Math.min(4, pool.length))].id;
+  let pool = candidates(used, prev).filter(r => r.id !== state.box[i].id);
+  if (!pool.length) pool = allRecipes().filter(r => !used.has(r.id) && r.id !== state.box[i].id);
+  if (!pool.length) { toast("No other dinners left to swap in"); return; }
+  pool.sort((a, b) => scoreRecipe(b) - scoreRecipe(a));
+  state.box[i].id = pool[Math.floor(Math.random() * Math.min(4, pool.length))].id;
+  state.checked = {};
+  save(); renderAll();
+}
+function addSlot() {
+  if (state.box.length >= MAX_BOX_SIZE) { toast(`Your box tops out at ${MAX_BOX_SIZE} meals`); return; }
+  state.box.push(emptySlot());
+  save(); renderAll();
+}
+function removeSlot() {
+  if (state.box.length <= MIN_BOX_SIZE) { toast(`Keep at least ${MIN_BOX_SIZE} meals in your box`); return; }
+  let idx = state.box.length - 1;
+  for (let i = state.box.length - 1; i >= 0; i--) { if (!state.box[i].locked) { idx = i; break; } }
+  state.box.splice(idx, 1);
   state.checked = {};
   save(); renderAll();
 }
@@ -1041,8 +1078,8 @@ function swapDay(i) {
 function shoppingList() {
   const scale = familyFactor() / 4;
   const map = new Map();
-  state.week.forEach(id => {
-    const r = isCooking(id) ? getR(id) : null;
+  state.box.forEach(slot => {
+    const r = slot.id ? getR(slot.id) : null;
     if (!r) return;
     r.ing.forEach(([item, qty, unit, cat]) => {
       const key = item + "|" + unit;
@@ -1097,67 +1134,66 @@ function renderFamily() {
   ).join("");
 }
 
-function mondayOfThisWeek() {
-  const d = new Date();
-  const shift = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - shift);
-  return d;
-}
 function renderWeek() {
-  const mon = mondayOfThisWeek();
-  const fmt = { day: "numeric", month: "short" };
-  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-  $("#weekLabel").textContent = `Week of ${mon.toLocaleDateString(undefined, fmt)} – ${sun.toLocaleDateString(undefined, fmt)}`;
+  $("#boxSizeLabel").textContent = `${state.box.length} meal${state.box.length === 1 ? "" : "s"}`;
 
-  const planned = state.week.filter(Boolean);
-  if (!planned.length) {
+  const filled = state.box.filter(s => s.id);
+  if (!filled.length) {
     $("#weekStats").innerHTML = "";
     $("#dayList").innerHTML = `
       <div class="empty-week">
         <div class="big-emoji">🥕</div>
-        <h3>No dinners planned yet</h3>
-        <p>Hit the button and Mealio will pick seven kid-tested dinners —<br>quick ones on school nights, something fun on Friday.</p>
-        <button class="btn" onclick="planWeek()">✨ Plan my week</button>
+        <h3>No meals picked yet</h3>
+        <p>Hit the button and Mealio will suggest ${state.box.length} kid-tested dinners for the week —<br>swap out anything that doesn't land.</p>
+        <button class="btn" onclick="refreshBox()">✨ Get my picks</button>
       </div>`;
     return;
   }
-  const cooking = state.week.filter(isCooking);
-  const avg = cooking.length ? Math.round(cooking.reduce((s, id) => s + getR(id).mins, 0) / cooking.length) : 0;
-  const approved = cooking.filter(id => { const a = state.approvals[id] || {}; return a.daughter || a.son; }).length;
-  const quick = cooking.filter(id => getR(id).mins <= 25).length;
+  const avg = Math.round(filled.reduce((s, slot) => s + getR(slot.id).mins, 0) / filled.length);
+  const approved = filled.filter(slot => { const a = state.approvals[slot.id] || {}; return a.daughter || a.son; }).length;
+  const quick = filled.filter(slot => getR(slot.id).mins <= 25).length;
   $("#weekStats").innerHTML = `
+    <div class="stat"><b>${filled.length}/${state.box.length}</b>meals picked</div>
     <div class="stat"><b>${avg} min</b>average cook time</div>
-    <div class="stat"><b>${approved}/${cooking.length}</b>already kid-approved</div>
-    <div class="stat"><b>${quick}</b>super-quick nights (≤25 min)</div>
+    <div class="stat"><b>${approved}/${filled.length}</b>already kid-approved</div>
+    <div class="stat"><b>${quick}</b>super-quick (≤25 min)</div>
     <div class="stat"><b>${familyFactor().toFixed(1)}×</b>portion scale for your crew</div>`;
 
-  $("#dayList").innerHTML = state.week.map((id, i) => {
-    const date = new Date(mon); date.setDate(mon.getDate() + i);
-    const r = id ? getR(id) : null;
-    const pseudo = r && PSEUDO[r.id];
+  const cards = state.box.map((slot, i) => {
+    const r = slot.id ? getR(slot.id) : null;
+    if (!r) {
+      return `
+      <div class="box-card empty-slot" onclick="switchTab('recipes')">
+        <div style="font-size:1.8rem">➕</div>
+        <div>Pick a meal</div>
+      </div>`;
+    }
     return `
-    <div class="day-card ${state.locked[i] ? "locked" : ""} ${pseudo ? "rest" : ""}">
-      <div class="day-label"><b>${DAYS[i]}</b><small>${date.toLocaleDateString(undefined, fmt)}</small></div>
-      <div>
-        ${r ? `
-        <div class="meal-name" onclick="${pseudo ? `openDayMenu(${i})` : `openRecipe('${r.id}')`}">${r.emoji} ${esc(r.name)}</div>
-        <div class="meal-meta">
-          ${pseudo ? `<span class="chip">😌 no cooking tonight</span>` : `
-          <span class="chip time">⏱ ${r.mins} min</span>
-          <span class="chip">${esc(r.cuisine)}</span>
-          ${DIET_CHIP[r.diet] ? `<span class="chip">${DIET_CHIP[r.diet]}</span>` : ""}
-          <span class="chip kids">${"💚".repeat(r.kid)} kid-rating</span>
-          ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
-          ${kidBadges(r.id)}`}
-        </div>` : `<div class="meal-name" style="color:var(--ink-soft)" onclick="openDayMenu(${i})">Nothing planned — tap to choose</div>`}
+    <div class="box-card ${slot.locked ? "locked" : ""}">
+      <div class="box-card-top">
+        ${slot.day !== null ? `<span class="chip day-chip">${DAYS[slot.day]}</span>` : `<span></span>`}
+        <div class="box-card-actions">
+          <button class="icon-btn" title="Shuffle in a new suggestion" onclick="swapSlot(${i})">🔀</button>
+          <button class="icon-btn" title="More options" onclick="openSlotMenu(${i})">✏️</button>
+          <button class="icon-btn" title="${slot.locked ? "Unlock" : "Lock this meal in"}" onclick="toggleLock(${i})">${slot.locked ? "🔒" : "🔓"}</button>
+        </div>
       </div>
-      <div class="day-actions">
-        <button class="icon-btn" title="Swap for something else" onclick="swapDay(${i})">🔄</button>
-        <button class="icon-btn" title="More options for this day" onclick="openDayMenu(${i})">✏️</button>
-        <button class="icon-btn" title="${state.locked[i] ? "Unlock" : "Lock this meal in"}" onclick="toggleLock(${i})">${state.locked[i] ? "🔒" : "🔓"}</button>
+      <div class="emoji">${r.emoji}</div>
+      <div class="meal-name" onclick="openRecipe('${r.id}')">${esc(r.name)}</div>
+      <div class="meal-meta">
+        <span class="chip time">⏱ ${r.mins} min</span>
+        ${r.cuisine ? `<span class="chip">${esc(r.cuisine)}</span>` : ""}
+        ${DIET_CHIP[r.diet] ? `<span class="chip">${DIET_CHIP[r.diet]}</span>` : ""}
+        <span class="chip kids">${"💚".repeat(r.kid)}</span>
+        ${r.id.startsWith("c_") ? `<span class="chip mine">✏️ yours</span>` : ""}
+        ${kidBadges(r.id)}
       </div>
     </div>`;
   }).join("");
+  const addCard = state.box.length < MAX_BOX_SIZE
+    ? `<div class="box-card empty-slot" onclick="addSlot()"><div style="font-size:1.8rem">➕</div><div>Add another meal</div></div>`
+    : "";
+  $("#dayList").innerHTML = cards + addCard;
 }
 function kidBadges(id) {
   const a = state.approvals[id] || {};
@@ -1166,23 +1202,39 @@ function kidBadges(id) {
   if (a.son) out += `<span title="Son approves">👦✓</span>`;
   return out;
 }
-function toggleLock(i) { state.locked[i] = !state.locked[i]; save(); renderWeek(); }
+function toggleLock(i) { state.box[i].locked = !state.box[i].locked; save(); renderWeek(); }
 
-/* Day menu: leftovers / eating out / clear */
-function openDayMenu(i) {
+/* Per-slot menu: shuffle / browse / optional day tag / remove */
+function openSlotMenu(i) {
+  const slot = state.box[i];
+  const r = slot.id ? getR(slot.id) : null;
   $("#modal").innerHTML = `
     <button class="icon-btn close" onclick="closeModal()">✕</button>
-    <h2>${DAYS[i]}</h2>
-    <div class="day-menu">
-      <button class="btn ghost" onclick="closeModal(); switchTab('recipes')">🍲 Browse recipes to pick one</button>
-      <button class="btn ghost" onclick="setDay(${i}, '_leftovers')">🥡 Leftovers night</button>
-      <button class="btn ghost" onclick="setDay(${i}, '_out')">🍴 Eating out / takeaway</button>
-      <button class="btn ghost" onclick="setDay(${i}, null)">✖ Clear this day</button>
+    <h2>${r ? r.emoji + " " + esc(r.name) : "Meal " + (i + 1)}</h2>
+    <div class="full" style="margin:12px 0 16px">
+      <label style="font-size:.78rem;font-weight:700;color:var(--ink-soft);display:block;margin-bottom:4px">Cook on (optional)</label>
+      <select id="slotDaySel" onchange="setSlotDay(${i}, this.value)">
+        <option value="">Any day</option>
+        ${DAYS.map((d, di) => `<option value="${di}" ${slot.day === di ? "selected" : ""}>${d}</option>`).join("")}
+      </select>
+    </div>
+    <div class="menu-list">
+      <button class="btn ghost" onclick="swapSlot(${i}); closeModal()">🔀 Shuffle in a new suggestion</button>
+      <button class="btn ghost" onclick="closeModal(); switchTab('recipes')">🍲 Browse recipes to choose</button>
+      <button class="btn danger" onclick="removeFromBox(${i})">🗑 Remove from this week's box</button>
     </div>`;
   $("#overlay").classList.add("open");
 }
-function setDay(i, id) {
-  state.week[i] = id;
+function setSlotDay(i, v) {
+  state.box[i].day = v === "" ? null : parseInt(v, 10);
+  save(); renderWeek();
+}
+function removeFromBox(i) {
+  if (state.box.length > MIN_BOX_SIZE) {
+    state.box.splice(i, 1);
+  } else {
+    state.box[i] = emptySlot(state.box[i].day);
+  }
   state.checked = {};
   save(); renderAll(); closeModal();
 }
@@ -1227,11 +1279,11 @@ function renderRecipes() {
 
 function renderShop() {
   const groups = shoppingList();
-  const cookingNights = state.week.filter(isCooking).length;
+  const mealCount = state.box.filter(s => s.id).length;
   const any = Object.keys(groups).length;
   $("#shopNote").innerHTML = any
-    ? `Everything for this week's ${cookingNights} cooking night${cookingNights === 1 ? "" : "s"}, scaled to <b>${familyFactor().toFixed(1)} adult portions</b> (2 grown-ups + a 4-year-old + a 2-year-old). Tap items as you shop.`
-    : "Plan your week first and the shopping list builds itself. You can still add your own items below.";
+    ? `Everything for this week's ${mealCount} meal${mealCount === 1 ? "" : "s"}, scaled to <b>${familyFactor().toFixed(1)} adult portions</b> (2 grown-ups + a 4-year-old + a 2-year-old). Tap items as you shop.`
+    : "Pick your meals first and the shopping list builds itself. You can still add your own items below.";
   const recipeGroups = CATS.filter(c => c !== "Your extras" && groups[c]).map(cat => `
     <div class="shop-group">
       <h3>${cat}</h3>
@@ -1320,11 +1372,7 @@ function openRecipe(id) {
       <button class="btn ghost" onclick="toggleFav('${id}')">${fav ? "❤️ Favourited" : "🤍 Favourite"}</button>
       ${mine ? `<button class="btn ghost" onclick="openEditor('${id}')">✏️ Edit</button>
       <button class="btn danger" onclick="deleteCustom('${id}')">🗑 Delete</button>` : ""}
-      <select id="addDaySel">
-        <option value="">Add to a day…</option>
-        ${DAYS.map((d, i) => `<option value="${i}">${d}</option>`).join("")}
-      </select>
-      <button class="btn" onclick="addToDay('${id}')">Add</button>
+      <button class="btn" onclick="addToBox('${id}')">➕ Add to this week's box</button>
     </div>`;
   $("#overlay").classList.add("open");
 }
@@ -1339,13 +1387,19 @@ function toggleFav(id) {
   if (i >= 0) state.favorites.splice(i, 1); else state.favorites.push(id);
   save(); openRecipe(id); renderRecipes();
 }
-function addToDay(id) {
-  const v = $("#addDaySel").value;
-  if (v === "") { toast("Pick a day first"); return; }
-  state.week[+v] = id;
+function addToBox(id) {
+  const already = state.box.some(s => s.id === id);
+  if (already) { toast(`${getR(id).emoji} Already in this week's box`); closeModal(); switchTab("week"); return; }
+  let idx = state.box.findIndex(s => !s.id);
+  if (idx === -1) {
+    if (state.box.length >= MAX_BOX_SIZE) { toast(`Your box is full (max ${MAX_BOX_SIZE}) — remove a meal first`); return; }
+    state.box.push(emptySlot());
+    idx = state.box.length - 1;
+  }
+  state.box[idx].id = id;
   state.checked = {};
   save(); renderAll(); closeModal();
-  toast(`${getR(id).emoji} Added to ${DAYS[+v]}`);
+  toast(`${getR(id).emoji} Added to this week's box`);
   switchTab("week");
 }
 
@@ -1482,7 +1536,7 @@ function deleteCustom(id) {
   const r = getR(id);
   if (!r || !confirm(`Delete "${r.name}"? This can't be undone.`)) return;
   state.custom = state.custom.filter(x => x.id !== id);
-  state.week = state.week.map(x => x === id ? null : x);
+  state.box = state.box.map(s => s.id === id ? emptySlot(s.day) : s);
   state.favorites = state.favorites.filter(x => x !== id);
   delete state.approvals[id];
   save(); renderAll(); closeModal();
@@ -1538,10 +1592,11 @@ document.querySelectorAll(".filter-chip").forEach(c => c.addEventListener("click
   renderRecipes();
 }));
 $("#searchBox").addEventListener("input", renderRecipes);
-$("#planBtn").addEventListener("click", planWeek);
+$("#planBtn").addEventListener("click", refreshBox);
+$("#boxPlusBtn").addEventListener("click", addSlot);
+$("#boxMinusBtn").addEventListener("click", removeSlot);
 $("#clearWeekBtn").addEventListener("click", () => {
-  state.week = Array(7).fill(null);
-  state.locked = Array(7).fill(false);
+  state.box = state.box.map(s => emptySlot(s.day));
   state.checked = {};
   save(); renderAll();
 });
