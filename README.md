@@ -3,14 +3,21 @@
 A family-first dinner planner: easy meal planning for **two grown-ups,
 a 4-year-old, and a 2-year-old**. (Formerly known as Herbi.)
 
-It's a single self-contained HTML file — no build step, no server, no accounts.
+It's a self-contained web app — no build step, no backend, no accounts — and
+it's installable on your phone as a PWA, working offline once it's loaded.
 
 ## Run it
 
 Open `index.html` in any browser. That's it.
 
-To host it, enable GitHub Pages for this repo (Settings → Pages → deploy from
-branch) and it'll be live at a URL you can open on your phone in the supermarket.
+Hosted on GitHub Pages (Settings → Pages → deploy from `main`), it's live at
+a URL you can open on your phone. From there:
+
+- **iPhone (Safari):** Share icon → "Add to Home Screen"
+- **Android (Chrome):** ⋮ menu → "Install app" (or "Add to Home screen")
+
+It'll then open full-screen like a native app, with its own icon, and keep
+working even with a shaky supermarket signal.
 
 ## What it does
 
@@ -50,11 +57,17 @@ instructions alongside its scaled ingredients, written for real weeknights
 (what to get on first, when to blitz for the toddler, food-safety checks for
 meat and fish).
 
+**🥗 Nutrition at a glance** — every built-in recipe shows calories, protein,
+carbs, fat, fibre and salt per adult portion, with a kcal chip on every
+card so you can scan the week at a glance. These are reasonable estimates
+from the ingredients, not a lab analysis — flagged as such in the app, and
+a child's smaller portion will have less than the adult figure shown.
+
 **✏️ Your own recipes** — add family favourites with the built-in editor
 (name, cook time, veggie/meat/fish type, kid rating, tags, little-ones notes,
-method steps, and ingredients with aisle categories). Custom recipes join the
-box's suggestion pool and the shopping list automatically, and can be edited
-or deleted any time.
+method steps, ingredients with aisle categories, and optional nutrition
+figures). Custom recipes join the box's suggestion pool and the shopping
+list automatically, and can be edited or deleted any time.
 
 **➕ Shopping extras** — add anything else you need (milk, bananas, snacks)
 to the bottom of the shopping list.
