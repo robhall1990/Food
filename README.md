@@ -3,14 +3,21 @@
 A family-first dinner planner: easy meal planning for **two grown-ups,
 a 4-year-old, and a 2-year-old**. (Formerly known as Herbi.)
 
-It's a single self-contained HTML file — no build step, no server, no accounts.
+It's a self-contained web app — no build step, no backend, no accounts — and
+it's installable on your phone as a PWA, working offline once it's loaded.
 
 ## Run it
 
 Open `index.html` in any browser. That's it.
 
-To host it, enable GitHub Pages for this repo (Settings → Pages → deploy from
-branch) and it'll be live at a URL you can open on your phone in the supermarket.
+Hosted on GitHub Pages (Settings → Pages → deploy from `main`), it's live at
+a URL you can open on your phone. From there:
+
+- **iPhone (Safari):** Share icon → "Add to Home Screen"
+- **Android (Chrome):** ⋮ menu → "Install app" (or "Add to Home screen")
+
+It'll then open full-screen like a native app, with its own icon, and keep
+working even with a shaky supermarket signal.
 
 ## What it does
 

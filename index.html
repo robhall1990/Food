@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mealio — Family Dinner Planner</title>
+<meta name="description" content="Plan family dinners, swap meals in and out of your weekly box, and get an auto-scaled shopping list.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3d7a4e">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mealio">
 <style>
   :root {
     --bg: #f6f4ee;
@@ -1624,6 +1634,14 @@ $("#overlay").addEventListener("click", e => { if (e.target === e.currentTarget)
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 renderAll();
+
+// Register the service worker so Mealio can be installed and used offline.
+// Skipped on file:// (opened locally) since service workers need http(s).
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* offline support is a bonus, not required */ });
+  });
+}
 </script>
 </body>
 </html>
